@@ -1,5 +1,5 @@
 '''
-Parse an instance of TSPLIB from XML format to JSON format.
+Parse instances of TSPLIB from XML format to python dict format or JSON format.
 
 http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/index.html
 http://www.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/XML-TSPLIB/instances/
@@ -13,33 +13,58 @@ import collections
 from xml.etree import ElementTree
 import json
 
-instance_container = 'data'
-instance_name = 'brazil58'
-instance_path = '%s/%s' % (instance_container, instance_name)
-input_instance = '%s.xml' % instance_path
-output_instance = '%s.json' % instance_path
 
-tree = ElementTree.parse(input_instance)
-root = tree.getroot()
+INSTANCE_CONTAINER = 'data'
 
-vertices = {}
 
-count = 0
+class Parser:
 
-for vertex in root.iter('vertex'):
-    edges = {}
-    for edge in vertex.iter('edge'):
-        position = int(edge.text)
-        cost = float(edge.attrib['cost'])
-        edges[position] = cost
-    vertices[count] = edges
-    count = count + 1
+    def __init__(self, instance_name):
+        self.instance_name = '%s/%s' % (INSTANCE_CONTAINER, instance_name)
+        input_instance = '%s.xml' % self.instance_name
 
-# ordering
-vertices = collections.OrderedDict(sorted(vertices.items()))
+        # XML parser
+        tree = ElementTree.parse(input_instance)
+        self.instance = tree.getroot()
 
-print(list(vertices.keys()))
-# print(vertices)
+    def to_dict(self):
 
-with open(output_instance, 'w') as f:
-    json.dump(vertices, f, indent=4, sort_keys=True)
+        vertices = {}
+
+        curr = 0  # vertex initial
+        for vertex in self.instance.iter('vertex'):
+            edges = {}
+
+            for edge in vertex.iter('edge'):
+                position = int(edge.text)  # vertex target position
+                cost = float(edge.attrib['cost'])  # edge cost
+                edges[position] = cost  # recording...
+
+            # ordering vertex edges
+            edges = collections.OrderedDict(sorted(edges.items()))
+
+            # recording current vertex edges ...
+            vertices[curr] = edges
+
+            curr = curr + 1  # next vertex to be parsed
+
+        # ordering vertices
+        vertices = collections.OrderedDict(sorted(vertices.items()))
+
+        return vertices
+
+    def to_json(self, indent=4, sort_keys=True):
+        return json.dumps(self.to_dict(), indent=indent, sort_keys=sort_keys)
+
+    def json_dump(self, filename='', indent=4, sort_keys=True):
+
+        if filename == '':
+            filename = '%s.json' % self.instance_name
+
+        with open(filename, 'w') as f:
+            json.dump(self.to_dict(), f, indent=indent, sort_keys=sort_keys)
+
+
+Parser('brazil58').json_dump()
+Parser('eil101').json_dump()
+Parser('gil262').json_dump()
