@@ -11,6 +11,7 @@ http://stackoverflow.com/questions/12309269/write-json-data-to-file-in-python
 
 import collections
 from xml.etree import ElementTree
+import csv
 import json
 
 
@@ -28,30 +29,45 @@ class Parser:
         self.instance = tree.getroot()
 
     def to_dict(self):
+        vertices_from_xml = self.instance[5].findall('vertex')
+        size = len(vertices_from_xml)
 
-        vertices = {}
+        distances = {}
 
-        curr = 0  # vertex initial
-        for vertex in self.instance.iter('vertex'):
+        # looking up xml vertices
+        for i in range(size):
+            vertex = vertices_from_xml[i]
             edges = {}
+            edges[i] = 0  # if i = j then cost = 0
 
+            # looking up current vertex edges
             for edge in vertex.iter('edge'):
-                position = int(edge.text)  # vertex target position
-                cost = float(edge.attrib['cost'])  # edge cost
-                edges[position] = cost  # recording...
+                j = int(edge.text)  # vertex target position
+                cost = float(edge.attrib['cost'])  # edge cost/distance
+                edges[j] = cost
 
-            # ordering vertex edges
-            edges = collections.OrderedDict(sorted(edges.items()))
+            distances[i] = edges
 
-            # recording current vertex edges ...
-            vertices[curr] = edges
+        return distances
 
-            curr = curr + 1  # next vertex to be parsed
+    def to_matrix(self):
+        vertices_from_xml = self.instance[5].findall('vertex')
+        size = len(vertices_from_xml)
 
-        # ordering vertices
-        vertices = collections.OrderedDict(sorted(vertices.items()))
+        # matrix initialized to 0
+        distances = [[0 for x in range(size)] for x in range(size)]
 
-        return vertices
+        # looking up xml vertices
+        for i in range(size):
+            vertex = vertices_from_xml[i]
+
+            # looking up current vertex edges
+            for edge in vertex.iter('edge'):
+                j = int(edge.text)  # vertex target position
+                cost = float(edge.attrib['cost'])  # edge cost/distance
+                distances[i][j] = cost  # edges distances
+
+        return distances
 
     def to_json(self, indent=4, sort_keys=True):
         return json.dumps(self.to_dict(), indent=indent, sort_keys=sort_keys)
