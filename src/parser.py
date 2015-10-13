@@ -69,6 +69,23 @@ class Parser:
 
         return distances
 
+    def to_csv(self, filename=''):
+
+        if filename == '':
+            filename = '%s.csv' % self.instance_name
+
+        with open(filename, 'a') as f:
+            writer = csv.writer(
+                f, delimiter=',',
+                quoting=csv.QUOTE_MINIMAL,
+                lineterminator='\n')
+
+            distances = self.to_matrix()
+
+            # header: writer.writerow([i for i in range(len(distances))])
+            for item in distances:
+                writer.writerow(item)
+
     def to_json(self, indent=4, sort_keys=True):
         return json.dumps(self.to_dict(), indent=indent, sort_keys=sort_keys)
 
