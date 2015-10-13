@@ -9,7 +9,6 @@ http://stackoverflow.com/questions/12309269/write-json-data-to-file-in-python
 @author Fernando Felix do Nascimento Junior
 '''
 
-import collections
 from xml.etree import ElementTree
 import csv
 import json
@@ -96,8 +95,3 @@ class Parser:
 
         with open(filename, 'w') as f:
             json.dump(self.to_dict(), f, indent=indent, sort_keys=sort_keys)
-
-
-Parser('brazil58').json_dump()
-Parser('eil101').json_dump()
-Parser('gil262').json_dump()
