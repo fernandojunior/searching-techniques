@@ -87,6 +87,9 @@ class Population:
         self.population = self.random_population(population_size)
 
     def crossover(self, individual1, individual2):
+        '''
+        Crossover is based on indexes of common values between individuals
+        '''
 
         # genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
         genes1 = list(individual1.genes)
@@ -101,10 +104,10 @@ class Population:
 
         # crossover first slice, [4, 2, 9, 0, 6, 3, 1, 8, 7, 5]
         for value in common_values1:
-            index1 = genes1.index(value)
-            index2 = genes2.index(value)
-            genes1[index1] = genes1[index2]
-            genes1[index2] = value
+            from_index = genes1.index(value)
+            to_index = genes2.index(value)
+            genes1[from_index] = genes1[to_index]
+            genes1[to_index] = value
 
         # common values in second slice, [1, 5, 6]
         common_values2 = intersection(genes1[cut_point:], genes2[cut_point:])
@@ -113,10 +116,10 @@ class Population:
         # 5: [3, 2, 8, 7, 4, 6, 1, 0, 9, 5]
         # 6: [3, 2, 8, 7, 6, 4, 1, 0, 9, 5]
         for value in common_values2:
-            index1 = genes2.index(value)
-            index2 = genes1.index(value)
-            genes2[index1] = genes2[index2]
-            genes2[index2] = value
+            from_index = genes2.index(value)
+            to_index = genes1.index(value)
+            genes2[from_index] = genes2[to_index]
+            genes2[to_index] = value
 
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
