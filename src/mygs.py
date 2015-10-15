@@ -204,6 +204,21 @@ class Population:
         population = population or self.population
         return min(population)
 
+    def solve(self):
+
+        population = list(self.population)  # copy
+
+        new_population = []
+
+        elitism_len = int(self.population_size * self.elitism_rate)
+
+        while len(new_population) < elitism_len:
+            best_individual = self.best_individual(population)
+            new_population.append(best_individual)
+            population.remove(best_individual)  # remove already computed
+
+        return new_population
+
 
 # distances of edges
 graph = read_graph('data/brazil58.json')
