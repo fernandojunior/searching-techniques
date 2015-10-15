@@ -57,6 +57,26 @@ class Individual:
         return fitness
 
 
+def difference(list1, list2):
+    '''
+    Return a list based on difference between list1 and list2 (list1 - list2)
+    '''
+    difference = []
+    for x in list1:
+        if x not in list2:
+            difference.append(x)
+    return difference
+
+
+def replace(a, b, l):
+    '''
+    In a list l, find all elements equals to a and replace with b
+    '''
+    for n, i in enumerate(l):
+        if i == a:
+            l[n] = b
+
+
 class Population:
     def __init__(self, graph, population_size=1000):
         self.graph = graph
@@ -64,15 +84,38 @@ class Population:
 
     def crossover(self, individual1, individual2):
 
-        genes1 = individual1.genes
-        genes2 = individual2.genes
+        # genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
+        genes1 = list(individual1.genes)
+        # genes2 = [3, 2, 8, 7, 5, 6, 0, 1, 9, 4]
+        genes2 = list(individual2.genes)
 
+        # cut_point = 4
         cut_point = random.randint(0, self.chromosome_size() - 1)
 
-        child1 = genes1[:cut_point] + genes2[cut_point:]
-        child2 = genes2[:cut_point] + genes1[cut_point:]
+        # finding all uncommons genes from first slice of genes1 and genes2
+        diff_slice1 = [
+            # genes1[:cut_point] - genes2[:cut_point] = [4, 9, 0]
+            difference(genes1[:cut_point], genes2[:cut_point]),
+            # genes2[:cut_point] - genes1[:cut_point] = [3, 8, 7]
+            difference(genes2[:cut_point], genes1[:cut_point])]
 
-        return Individual(child1, self.graph), Individual(child2, self.graph)
+        # crossover first slice
+        # result = [3, 8, 2, 7] + [6, 3, 1, 8, 7, 5]
+        for n, el in enumerate(diff_slice1[0]):
+            replace(el, diff_slice1[1][n], genes1)
+
+        diff_slice2 = [
+            # [3, 8, 7]
+            difference(genes1[cut_point:], genes2[cut_point:]),
+            # [0, 9, 4]
+            difference(genes2[cut_point:], genes1[cut_point:])]
+
+        # crossover second slice
+        # result = [0, 2, 9, 4] + [6, 0, 1, 9, 4, 5]
+        for n, el in enumerate(diff_slice2[0]):
+            replace(el, diff_slice2[1][n], genes2)
+
+        return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
     def chromosome_size(self):
         return len(self.graph.vertices())
@@ -125,3 +168,5 @@ graph = read_graph('data/brazil58.json')
 graph = Graph(graph)
 population = Population(graph)
 print(population.population[0].fitness())
+
+# TODO: linkar individuals e population
