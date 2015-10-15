@@ -7,7 +7,7 @@ import random
 import json
 
 
-def read_costs(path):
+def read_graph(path):
     """
     Open a json file that contains the edge costs
     """
@@ -15,54 +15,89 @@ def read_costs(path):
         return json.load(f)  # read match
 
 
-def random_individual(vertices):
-    '''
-    Generate an individual randomly.
-    Individual chromosome size is based on length of vertices.
-    '''
-    individual = []
-    tmp = list(vertices)  # copy
-    for i in range(len(vertices)):
-        gene = random.choice(tmp)
-        individual.append(gene)
-        tmp.remove(gene)
-    return individual
+class Graph:
+    def __init__(self, graph):
+        self.graph = graph
+
+    def cost(self, from_node, to_node):
+        print(from_node, to_node)
+        return self.graph[from_node][to_node]
+
+    def vertex(self, position):
+        return self.vertices()[position]
+
+    def vertices(self):
+        return list(self.graph.keys())
+
+
+class Individual:
+
+    def __init__(self, genes, graph):
+        self.genes = genes
+        self.graph = graph
+
+    def __repr__(self):
+        return str(self.genes)
+
+    def fitness(self):
+        fitness = 0
+        chromosome_size = len(self.genes)
+        for j in range(chromosome_size):
+            if j < chromosome_size - 1:
+                from_gene = self.genes[j]
+                to_gene = self.genes[j + 1]
+                cost = self.graph.cost(from_gene, to_gene)
+                fitness += cost
+        return fitness
+
+
+class Population:
+    def __init__(self, graph):
+        self.graph = graph
+        self.population = self.random_population()
+
+    def random_population(self, size=1000):
+        '''
+        Generates a random population with a predefined size
+        '''
+        population = []
+        genes_population = []
+
+        while len(population) < size:
+            genes = self.random_genes()
+            if(genes not in genes_population):  # preventing twins
+                individual = Individual(genes, self.graph)
+                population.append(individual)
+
+        return population
+
+    def random_genes(self):
+        '''
+        Generate random genes for an individual.
+        '''
+        genes = []
+        vertices = self.graph.vertices()
+        missing_genes = list(vertices)  # copy
+        for i in range(len(vertices)):
+            gene = random.choice(missing_genes)  # choosing a distinct gene
+            genes.append(gene)
+            missing_genes.remove(gene)  # removing already choosed gene
+        return genes
+
+    def fitness(self):
+        '''
+        Sum of all individual fitness
+        '''
+        fitness = 0
+        for individual in self.population:
+            fitness += individual.fitness()
+        return fitness
+
+    def __repr__(self):
+        return str(self.population)
 
 # distances of edges
-costs = read_costs('data/brazil58.json')
-
-# list of vertices
-vertices = list(costs.keys())
-
-# number of individuals in the population
-POPULATION_SIZE = 1000
-
-# number of genes of an individual
-CHROMOSSOME_SIZE = len(vertices)
-
-# stores initial population
-population = []
-
-# generates a random initial population with size = POPULATION_SIZE
-while len(population) < POPULATION_SIZE:
-    # random generation of an individual
-    individual = random_individual(vertices)
-    if(individual not in population):
-        population.append(individual)
-
-# stores fitness for each individual in population
-fitness = [0] * POPULATION_SIZE
-
-# sum of all individual fitness
-total_fitness = 0
-
-# computing individual fitness based on distances of edges
-for i in range(POPULATION_SIZE):
-    individual = population[i]
-    for j in range(CHROMOSSOME_SIZE):
-        if j < CHROMOSSOME_SIZE - 1:
-            gene = individual[j]
-            next_gene = individual[j + 1]
-            cost = costs[gene][next_gene]
-            fitness[i] += cost  # fitness of individual with index i
-            total_fitness += cost
+graph = read_graph('data/brazil58.json')
+graph = Graph(graph)
+population = Population(graph)
+print(population.population[0].fitness())
