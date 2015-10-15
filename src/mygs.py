@@ -68,6 +68,10 @@ def difference(list1, list2):
     return difference
 
 
+def intersection(list1, list2):
+    return list(set(list1).intersection(set(list2)))
+
+
 def replace(a, b, l):
     '''
     In a list l, find all elements equals to a and replace with b
@@ -92,28 +96,27 @@ class Population:
         # cut_point = 4
         cut_point = random.randint(0, self.chromosome_size() - 1)
 
-        # finding all uncommons genes from first slice of genes1 and genes2
-        diff_slice1 = [
-            # genes1[:cut_point] - genes2[:cut_point] = [4, 9, 0]
-            difference(genes1[:cut_point], genes2[:cut_point]),
-            # genes2[:cut_point] - genes1[:cut_point] = [3, 8, 7]
-            difference(genes2[:cut_point], genes1[:cut_point])]
+        # common values in first slices [2]
+        common_values1 = intersection(genes1[:cut_point], genes2[:cut_point])
 
-        # crossover first slice
-        # result = [3, 8, 2, 7] + [6, 3, 1, 8, 7, 5]
-        for n, el in enumerate(diff_slice1[0]):
-            replace(el, diff_slice1[1][n], genes1)
+        # crossover first slice, [4, 2, 9, 0, 6, 3, 1, 8, 7, 5]
+        for value in common_values1:
+            index1 = genes1.index(value)
+            index2 = genes2.index(value)
+            genes1[index1] = genes1[index2]
+            genes1[index2] = value
 
-        diff_slice2 = [
-            # [3, 8, 7]
-            difference(genes1[cut_point:], genes2[cut_point:]),
-            # [0, 9, 4]
-            difference(genes2[cut_point:], genes1[cut_point:])]
+        # common values in second slice, [1, 5, 6]
+        common_values2 = intersection(genes1[cut_point:], genes2[cut_point:])
 
-        # crossover second slice
-        # result = [0, 2, 9, 4] + [6, 0, 1, 9, 4, 5]
-        for n, el in enumerate(diff_slice2[0]):
-            replace(el, diff_slice2[1][n], genes2)
+        # 1: [3, 2, 8, 7, 5, 6, 1, 0, 9, 4]
+        # 5: [3, 2, 8, 7, 4, 6, 1, 0, 9, 5]
+        # 6: [3, 2, 8, 7, 6, 4, 1, 0, 9, 5]
+        for value in common_values2:
+            index1 = genes2.index(value)
+            index2 = genes1.index(value)
+            genes2[index1] = genes2[index2]
+            genes2[index2] = value
 
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
@@ -170,3 +173,4 @@ population = Population(graph)
 print(population.population[0].fitness())
 
 # TODO: linkar individuals e population
+# TODO: crossover deve ser feito no escopo do individuo
