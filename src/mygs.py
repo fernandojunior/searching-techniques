@@ -2,6 +2,12 @@
 Genetic algorithm implementation to find shortest path.
 Under development.
 @author Fernando Felix do Nascimento Junior
+
+
+http://geneticalgorithms.ai-depot.com/Tutorial/Overview.html
+http://stackoverflow.com/questions/1575061/ga-written-in-java
+http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
+http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
 '''
 import random
 import json
@@ -52,18 +58,42 @@ class Individual:
 
 
 class Population:
-    def __init__(self, graph):
+    def __init__(self, graph, population_size=1000):
         self.graph = graph
-        self.population = self.random_population()
+        self.population = self.random_population(population_size)
 
-    def random_population(self, size=1000):
+    def crossover(self, individual1, individual2):
+
+        genes1 = individual1.genes
+        genes2 = individual2.genes
+
+        cut_point = random.randint(0, self.chromosome_size() - 1)
+
+        child1 = genes1[:cut_point] + genes2[cut_point:]
+        child2 = genes2[:cut_point] + genes1[cut_point:]
+
+        return Individual(child1, self.graph), Individual(child2, self.graph)
+
+    def chromosome_size(self):
+        return len(self.graph.vertices())
+
+    def fitness(self):
+        '''
+        Sum of all individual fitness
+        '''
+        fitness = 0
+        for individual in self.population:
+            fitness += individual.fitness()
+        return fitness
+
+    def random_population(self, population_size):
         '''
         Generates a random population with a predefined size
         '''
         population = []
         genes_population = []
 
-        while len(population) < size:
+        while len(population) < population_size:
             genes = self.random_genes()
             if(genes not in genes_population):  # preventing twins
                 individual = Individual(genes, self.graph)
@@ -84,14 +114,8 @@ class Population:
             missing_genes.remove(gene)  # removing already choosed gene
         return genes
 
-    def fitness(self):
-        '''
-        Sum of all individual fitness
-        '''
-        fitness = 0
-        for individual in self.population:
-            fitness += individual.fitness()
-        return fitness
+    def random_gene(self, vertices):
+        return random.choice(vertices)
 
     def __repr__(self):
         return str(self.population)
