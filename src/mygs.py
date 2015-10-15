@@ -26,7 +26,6 @@ class Graph:
         self.graph = graph
 
     def cost(self, from_node, to_node):
-        print(from_node, to_node)
         return self.graph[from_node][to_node]
 
     def vertex(self, position):
@@ -41,6 +40,12 @@ class Individual:
     def __init__(self, genes, graph):
         self.genes = genes
         self.graph = graph
+
+    def __eq__(self, other):
+        return self.fitness() == other.fitness()
+
+    def __lt__(self, other):
+        return self.fitness() < other.fitness()
 
     def __repr__(self):
         return str(self.genes)
@@ -81,10 +86,27 @@ def replace(a, b, l):
             l[n] = b
 
 
+def switch(a, b, l):
+    '''
+    Switch two elements of a list.
+    @param a Index of an element
+    @param b Index of another element
+    @param l A list
+    '''
+    l[b], l[a] = l[a], l[b]
+
+
 class Population:
-    def __init__(self, graph, population_size=1000):
+    def __init__(self, graph, **kargs):
         self.graph = graph
-        self.population = self.random_population(population_size)
+        self.population_size = kargs['population_size'] if 'population_size' in kargs else 1000
+        self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
+        self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
+        self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
+        self.population = self.random_population(self.population_size)
+
+    def __repr__(self):
+        return str(self.population)
 
     def crossover(self, individual1, individual2):
         '''
@@ -106,8 +128,7 @@ class Population:
         for value in common_values1:
             from_index = genes1.index(value)
             to_index = genes2.index(value)
-            genes1[from_index] = genes1[to_index]
-            genes1[to_index] = value
+            switch(from_index, to_index, genes1)
 
         # common values in second slice, [1, 5, 6]
         common_values2 = intersection(genes1[cut_point:], genes2[cut_point:])
@@ -118,8 +139,7 @@ class Population:
         for value in common_values2:
             from_index = genes2.index(value)
             to_index = genes1.index(value)
-            genes2[from_index] = genes2[to_index]
-            genes2[to_index] = value
+            switch(from_index, to_index, genes2)
 
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
@@ -166,8 +186,24 @@ class Population:
     def random_gene(self, vertices):
         return random.choice(vertices)
 
-    def __repr__(self):
-        return str(self.population)
+    def roulette_wheel_selection(self):
+        '''
+        Select an individual based on roulette wheel selection strategy
+        '''
+        cumulative_fitness = 0.0
+        total_fraction = self.fitness() * random.random()  # random [0.0, 1.0]
+        for individual in self.population:
+            cumulative_fitness += individual.fitness()
+            if cumulative_fitness >= total_fraction:
+                return individual
+
+    def best_individual(self, population=None):
+        '''
+        Returns best individual of the population (with minimal fitness).
+        '''
+        population = population or self.population
+        return min(population)
+
 
 # distances of edges
 graph = read_graph('data/brazil58.json')
