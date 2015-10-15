@@ -7,9 +7,9 @@ import random
 import json
 
 
-def open_distances(path):
+def read_costs(path):
     """
-    Open a json file that contains the distances between vertices
+    Open a json file that contains the edge costs
     """
     with open(path) as f:  # open match
         return json.load(f)  # read match
@@ -29,10 +29,10 @@ def random_individual(vertices):
     return individual
 
 # distances of edges
-distances = open_distances('data/brazil58.json')
+costs = read_costs('data/brazil58.json')
 
 # list of vertices
-vertices = list(distances.keys())
+vertices = list(costs.keys())
 
 # number of individuals in the population
 POPULATION_SIZE = 1000
@@ -49,3 +49,20 @@ while len(population) < POPULATION_SIZE:
     individual = random_individual(vertices)
     if(individual not in population):
         population.append(individual)
+
+# stores fitness for each individual in population
+fitness = [0] * POPULATION_SIZE
+
+# sum of all individual fitness
+total_fitness = 0
+
+# computing individual fitness based on distances of edges
+for i in range(POPULATION_SIZE):
+    individual = population[i]
+    for j in range(CHROMOSSOME_SIZE):
+        if j < CHROMOSSOME_SIZE - 1:
+            gene = individual[j]
+            next_gene = individual[j + 1]
+            cost = costs[gene][next_gene]
+            fitness[i] += cost  # fitness of individual with index i
+            total_fitness += cost
