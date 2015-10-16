@@ -1,13 +1,22 @@
 '''
 Genetic algorithm implementation to find shortest path.
-Under development.
+
+How to:
+```
+graph = read_graph('data/brazil58.json')
+graph = Graph(graph)
+solution = Solution('0', '57', graph)
+population = solution.solve()
+print(population.best().fitness())
+```
+
 @author Fernando Felix do Nascimento Junior
 
-
-http://geneticalgorithms.ai-depot.com/Tutorial/Overview.html
-http://stackoverflow.com/questions/1575061/ga-written-in-java
-http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
-http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
+@links
+    http://geneticalgorithms.ai-depot.com/Tutorial/Overview.html
+    http://stackoverflow.com/questions/1575061/ga-written-in-java
+    http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
+    http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
 '''
 import random
 import json
@@ -21,42 +30,28 @@ def read_graph(path):
         return json.load(f)  # read match
 
 
-def difference(list1, list2):
-    '''
-    Return a list based on difference between list1 and list2 (list1 - list2)
-    '''
-    difference = []
-    for x in list1:
-        if x not in list2:
-            difference.append(x)
-    return difference
-
-
 def intersection(list1, list2):
+    '''
+    Intersection between two lists
+    '''
     return list(set(list1).intersection(set(list2)))
-
-
-def replace(a, b, l):
-    '''
-    In a list l, find all elements equals to a and replace with b
-    '''
-    for n, i in enumerate(l):
-        if i == a:
-            l[n] = b
 
 
 def switch(a, b, l):
     '''
     Switch two elements of a list.
-    @param a Index of an element of the list
-    @param b Index of another element of the list
-    @param l A list
+    @a: Index of an element of the list
+    @b: Index of another element of the list
+    @l: A list
     '''
     l[b], l[a] = l[a], l[b]
     return l
 
 
 class Graph:
+    '''
+    Graph with edge costs.
+    '''
     def __init__(self, graph):
         self.graph = graph
 
@@ -71,6 +66,9 @@ class Graph:
 
 
 class Individual:
+    '''
+    A individual with a sequence of genes. Represents any possible solution
+    '''
 
     def __init__(self, genes, graph):
         self.genes = genes
@@ -128,6 +126,9 @@ class Individual:
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
     def fitness(self):
+        '''
+        Returns the fitness (path cost) of individual
+        '''
         fitness = 0
         chromosome_size = len(self.genes)
         for j in range(chromosome_size):
@@ -162,6 +163,9 @@ class Individual:
 
 
 class Population:
+    '''
+    Group of individuals that represents possible solutions to the problem
+    '''
     def __init__(self, graph):
         self.graph = graph
         self.individuals = []
@@ -295,7 +299,7 @@ class Solution:
 
         population = self.random_population(self.max_population_size)
 
-        # number of times there is no improvement with new generations
+        # number of times there is no improvement
         stagnation_count = 0
 
         while stagnation_count < self.max_stagnation:
@@ -330,6 +334,7 @@ class Solution:
                 son = son or father.copy()
                 daugther = daugther or mother.copy()
 
+                # preventing duplicated individuals
                 if new_population.has(son) or new_population.has(daugther):
                     continue
 
@@ -351,15 +356,3 @@ class Solution:
             population = new_population
 
         return population
-
-
-# distances of edges
-graph = read_graph('data/brazil58.json')
-graph = Graph(graph)
-solution = Solution('0', '57', graph)
-population = solution.solve()
-
-print(population.best().fitness())
-
-# TODO: linkar individuals e population
-# TODO: crossover deve ser feito no escopo do individuo
