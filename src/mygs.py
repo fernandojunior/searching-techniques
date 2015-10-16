@@ -213,7 +213,7 @@ class Solution:
 
     def __init__(self, graph, **kargs):
         self.graph = graph
-        self.max_generations = kargs['max_generations'] if 'max_generations' in kargs else 100
+        self.max_stagnation = kargs['max_stagnation'] if 'max_stagnation' in kargs else 100
         self.max_population_size = kargs['max_population_size'] if 'max_population_size' in kargs else 100
         self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
         self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
@@ -255,8 +255,10 @@ class Solution:
 
         population = self.random_population(self.max_population_size)
 
-        generations_count = 0
-        while generations_count < self.max_generations:
+        # number of times there is no improvement with new generations
+        stagnation_count = 0
+
+        while stagnation_count < self.max_stagnation:
             new_population = Population(self.graph)
 
             # elitism
@@ -291,8 +293,14 @@ class Solution:
                 new_population.append(son)
                 new_population.append(daugther)
 
+            # if there was no improvement
+            if population.best().fitness() <= new_population.best().fitness():
+                stagnation_count += 1
+            else:
+                stagnation_count = 0
+
             population = new_population
-            generations_count += 1
+
         return population
 
 
