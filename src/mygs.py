@@ -9,7 +9,6 @@ http://stackoverflow.com/questions/1575061/ga-written-in-java
 http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
 http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
 '''
-import copy
 import random
 import json
 
@@ -20,50 +19,6 @@ def read_graph(path):
     """
     with open(path) as f:  # open match
         return json.load(f)  # read match
-
-
-class Graph:
-    def __init__(self, graph):
-        self.graph = graph
-
-    def cost(self, from_node, to_node):
-        return self.graph[from_node][to_node]
-
-    def vertex(self, position):
-        return self.vertices()[position]
-
-    def vertices(self):
-        return list(self.graph.keys())
-
-
-class Individual:
-
-    def __init__(self, genes, graph):
-        self.genes = genes
-        self.graph = graph
-
-    def __eq__(self, other):
-        return self.fitness() == other.fitness()
-
-    def __lt__(self, other):
-        return self.fitness() < other.fitness()
-
-    def copy(self):
-        return self.__class__(list(self.genes), self.graph)
-
-    def __repr__(self):
-        return str(self.genes)
-
-    def fitness(self):
-        fitness = 0
-        chromosome_size = len(self.genes)
-        for j in range(chromosome_size):
-            if j < chromosome_size - 1:
-                from_gene = self.genes[j]
-                to_gene = self.genes[j + 1]
-                cost = self.graph.cost(from_gene, to_gene)
-                fitness += cost
-        return fitness
 
 
 def difference(list1, list2):
@@ -101,23 +56,46 @@ def switch(a, b, l):
     return l
 
 
-class Population:
-    def __init__(self, graph, **kargs):
+class Graph:
+    def __init__(self, graph):
         self.graph = graph
-        self.max_generations = kargs['max_generations'] if 'max_generations' in kargs else 100
-        self.population_size = kargs['population_size'] if 'population_size' in kargs else 100
-        self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
-        self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
-        self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
-        self.population = self.random_population(self.population_size)
+
+    def cost(self, from_node, to_node):
+        return self.graph[from_node][to_node]
+
+    def vertex(self, position):
+        return self.vertices()[position]
+
+    def vertices(self):
+        return list(self.graph.keys())
+
+
+class Individual:
+
+    def __init__(self, genes, graph):
+        self.genes = genes
+        self.graph = graph
+
+    def __eq__(self, other):
+        return self.fitness() == other.fitness()
+
+    def __lt__(self, other):
+        return self.fitness() < other.fitness()
 
     def __repr__(self):
-        return str(self.population)
+        return str(self.genes)
 
-    def crossover(self, individual1, individual2):
+    def copy(self):
+        return self.__class__(list(self.genes), self.graph)
+
+    def crossover(self, other):
         '''
-        Crossover is based on indexes of common values between individuals
+        Returns two children by crossovering with another individual.
+        It is based on indexes of common values between individuals.
         '''
+
+        individual1, individual2 = self, other
+        chromosome_size = len(self.graph.vertices())
 
         # genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
         genes1 = list(individual1.genes)
@@ -125,7 +103,7 @@ class Population:
         genes2 = list(individual2.genes)
 
         # cut_point = 4
-        cut_point = random.randint(0, self.chromosome_size() - 1)
+        cut_point = random.randint(0, chromosome_size - 1)
 
         # common values in first slices [2]
         common_values1 = intersection(genes1[:cut_point], genes2[:cut_point])
@@ -149,36 +127,117 @@ class Population:
 
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
-    def chromosome_size(self):
-        return len(self.graph.vertices())
+    def fitness(self):
+        fitness = 0
+        chromosome_size = len(self.genes)
+        for j in range(chromosome_size):
+            if j < chromosome_size - 1:
+                from_gene = self.genes[j]
+                to_gene = self.genes[j + 1]
+                cost = self.graph.cost(from_gene, to_gene)
+                fitness += cost
+        return fitness
+
+    def mutation(self):
+        '''
+        Generates a mutation based on this individual
+        '''
+        genes = list(self.genes)
+        a = random.randint(0, len(genes) - 1)
+        b = random.randint(0, len(genes) - 1)
+        switch(a, b, genes)
+        return Individual(genes, self.graph)
+
+
+class Population:
+    def __init__(self, graph):
+        self.graph = graph
+        self.individuals = []
+
+    def __repr__(self):
+        return str(self.individuals)
 
     def fitness(self):
         '''
         Sum of all individual fitness
         '''
         fitness = 0
-        for individual in self.population:
+        for individual in self.individuals:
             fitness += individual.fitness()
         return fitness
 
-    def random_population(self, population_size):
+    def append(self, individual):
+        '''
+        Appends a new individual to the population
+        '''
+        if isinstance(individual, list):
+            individual = Individual(individual, self.graph)
+            self.individuals.append(individual)
+        if isinstance(individual, Individual):
+            self.individuals.append(individual)
+
+    def get(self, index):
+        '''
+        Returns an individual by its index
+        '''
+        return self.individuals[index]
+
+    def size(self):
+        '''
+        Returns number of individuals
+        '''
+        return len(self.individuals)
+
+    def roulette_wheel_selection(self):
+        '''
+        Select an individual based on roulette wheel selection strategy
+        '''
+        cumulative_fitness = 0.0
+        total_fraction = self.fitness() * random.random()  # random [0.0, 1.0]
+        for individual in self.individuals:
+            cumulative_fitness += individual.fitness()
+            if cumulative_fitness >= total_fraction:
+                return individual
+
+    def best(self):
+        '''
+        Returns best individual of the population (with minimal fitness).
+        '''
+        return min(self.individuals)
+
+
+class Solution:
+    '''
+    Solution of shortest path problem using genetic algorithm
+    '''
+
+    def __init__(self, graph, **kargs):
+        self.graph = graph
+        self.max_generations = kargs['max_generations'] if 'max_generations' in kargs else 100
+        self.max_population_size = kargs['max_population_size'] if 'max_population_size' in kargs else 100
+        self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
+        self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
+        self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
+
+    def random_population(self, max_population_size=None):
         '''
         Generates a random population with a predefined size
         '''
-        population = []
-        genes_population = []
+        max_population_size = max_population_size or self.max_population_size
+        population = Population(self.graph)
 
-        while len(population) < population_size:
+        ngenes = []  # stores genereted n genes
+
+        while population.size() < max_population_size:
             genes = self.random_genes()
-            if(genes not in genes_population):  # preventing twins
-                individual = Individual(genes, self.graph)
-                population.append(individual)
+            if(genes not in ngenes):  # preventing twins
+                population.append(genes)
 
         return population
 
     def random_genes(self):
         '''
-        Generate random genes for an individual.
+        Generate random genes (without repetions) for an individual.
         '''
         genes = []
         vertices = self.graph.vertices()
@@ -189,72 +248,45 @@ class Population:
             missing_genes.remove(gene)  # removing already choosed gene
         return genes
 
-    def random_gene(self, vertices):
-        return random.choice(vertices)
-
-    def roulette_wheel_selection(self):
-        '''
-        Select an individual based on roulette wheel selection strategy
-        '''
-        cumulative_fitness = 0.0
-        total_fraction = self.fitness() * random.random()  # random [0.0, 1.0]
-        for individual in self.population:
-            cumulative_fitness += individual.fitness()
-            if cumulative_fitness >= total_fraction:
-                return individual
-
-    def best_individual(self, population=None):
-        '''
-        Returns best individual of the population (with minimal fitness).
-        '''
-        population = population or self.population
-        return min(population)
-
-    def mutation(self, individual):
-        '''
-        Generates a mutation based on an individual
-        '''
-        genes = list(individual.genes)
-        chromosome_size = len(genes)
-        a = random.randint(0, chromosome_size - 1)
-        b = random.randint(0, chromosome_size - 1)
-        switch(a, b, genes)
-        return Individual(genes, self.graph)
-
     def solve(self):
+        '''
+        Creates lazy generations (genetic algorithm) and returns the last one
+        '''
 
-        population = list(self.population)  # copy
+        population = self.random_population(self.max_population_size)
 
         generations_count = 0
         while generations_count < self.max_generations:
-            new_population = []
+            new_population = Population(self.graph)
 
             # elitism
-            elitism_len = int(self.population_size * self.elitism_rate)
-            while len(new_population) < elitism_len:
-                best_individual = self.best_individual(population)
+            individuals = list(population.individuals)
+            elitism_size = int(self.max_population_size * self.elitism_rate)
+            while new_population.size() < elitism_size:
+                best_individual = min(individuals)  # with min fitness
                 new_population.append(best_individual)
-                population.remove(best_individual)  # remove already computed
+                individuals.remove(best_individual)  # remove already computed
 
-            while len(new_population) < len(self.population):
-                # TODO especificar population
-                father = self.roulette_wheel_selection()
-                mother = self.roulette_wheel_selection()
+            while new_population.size() < self.max_population_size:
+                father = population.roulette_wheel_selection()
+                mother = population.roulette_wheel_selection()
 
                 son = daugther = None
 
                 # crossover
                 if (random.random() < self.crossover_rate):
-                    son, daugther = self.crossover(father, mother)
-                else:
-                    son, daugther = father.copy(), mother.copy()
+                    son, daugther = mother.crossover(father)
 
                 # mutation
                 if (random.random() < self.mutation_rate):
-                    son = self.mutation(son)
+                    son = father.mutation()
 
                 if (random.random() < self.mutation_rate):
-                    daugther = self.mutation(daugther)
+                    daugther = mother.mutation()
+
+                # preventing None values
+                son = son or father.copy()
+                daugther = daugther or mother.copy()
 
                 new_population.append(son)
                 new_population.append(daugther)
@@ -263,11 +295,13 @@ class Population:
             generations_count += 1
         return population
 
+
 # distances of edges
 graph = read_graph('data/brazil58.json')
 graph = Graph(graph)
-population = Population(graph)
-print(population.population[0].fitness())
+solution = Solution(graph)
+population = solution.solve()
+print(population.best().fitness())
 
 # TODO: linkar individuals e population
 # TODO: crossover deve ser feito no escopo do individuo
