@@ -104,7 +104,8 @@ def switch(a, b, l):
 class Population:
     def __init__(self, graph, **kargs):
         self.graph = graph
-        self.population_size = kargs['population_size'] if 'population_size' in kargs else 1000
+        self.max_generations = kargs['max_generations'] if 'max_generations' in kargs else 100
+        self.population_size = kargs['population_size'] if 'population_size' in kargs else 100
         self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
         self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
         self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
@@ -224,40 +225,43 @@ class Population:
 
         population = list(self.population)  # copy
 
-        new_population = []
+        generations_count = 0
+        while generations_count < self.max_generations:
+            new_population = []
 
-        elitism_len = int(self.population_size * self.elitism_rate)
+            # elitism
+            elitism_len = int(self.population_size * self.elitism_rate)
+            while len(new_population) < elitism_len:
+                best_individual = self.best_individual(population)
+                new_population.append(best_individual)
+                population.remove(best_individual)  # remove already computed
 
-        # elitism
-        while len(new_population) < elitism_len:
-            best_individual = self.best_individual(population)
-            new_population.append(best_individual)
-            population.remove(best_individual)  # remove already computed
+            while len(new_population) < len(self.population):
+                # TODO especificar population
+                father = self.roulette_wheel_selection()
+                mother = self.roulette_wheel_selection()
 
-        while len(new_population) < len(self.population):
-            # TODO especificar population
-            father = self.roulette_wheel_selection()
-            mother = self.roulette_wheel_selection()
+                son = daugther = None
 
-            son = daugther = None
+                # crossover
+                if (random.random() < self.crossover_rate):
+                    son, daugther = self.crossover(father, mother)
+                else:
+                    son, daugther = father.copy(), mother.copy()
 
-            # crossover
-            if (random.random() < self.crossover_rate):
-                son, daugther = self.crossover(father, mother)
-            else:
-                son, daugther = father.copy(), mother.copy()
+                # mutation
+                if (random.random() < self.mutation_rate):
+                    son = self.mutation(son)
 
-            # mutation
-            if (random.random() < self.mutation_rate):
-                son = self.mutation(son)
+                if (random.random() < self.mutation_rate):
+                    daugther = self.mutation(daugther)
 
-            if (random.random() < self.mutation_rate):
-                daugther = self.mutation(daugther)
+                new_population.append(son)
+                new_population.append(daugther)
 
-            new_population.append(son)
-            new_population.append(daugther)
-
-        return new_population
+            population = new_population
+            generations_count += 1
+        return population
 
 # distances of edges
 graph = read_graph('data/brazil58.json')
