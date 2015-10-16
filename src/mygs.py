@@ -94,16 +94,13 @@ class Individual:
         It is based on indexes of common values between individuals.
         '''
 
-        individual1, individual2 = self, other
-        chromosome_size = len(self.graph.vertices())
-
         # genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
-        genes1 = list(individual1.genes)
+        genes1 = self.genes[1:-1]  # exclude start, stop vertex
         # genes2 = [3, 2, 8, 7, 5, 6, 0, 1, 9, 4]
-        genes2 = list(individual2.genes)
+        genes2 = other.genes[1:-1]
 
         # cut_point = 4
-        cut_point = random.randint(0, chromosome_size - 1)
+        cut_point = random.randint(0, len(genes1) - 1)
 
         # common values in first slices [2]
         common_values1 = intersection(genes1[:cut_point], genes2[:cut_point])
@@ -125,6 +122,9 @@ class Individual:
             to_index = genes1.index(value)
             switch(from_index, to_index, genes2)
 
+        genes1 = [self.start()] + genes1 + [self.stop()]
+        genes2 = [other.start()] + genes2 + [other.stop()]
+
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
     def fitness(self):
@@ -143,10 +143,22 @@ class Individual:
         Generates a mutation based on this individual
         '''
         genes = list(self.genes)
-        a = random.randint(0, len(genes) - 1)
-        b = random.randint(0, len(genes) - 1)
+        a = random.randint(1, len(genes) - 2)  # exclude start and stop vertex
+        b = random.randint(1, len(genes) - 2)
         switch(a, b, genes)
         return Individual(genes, self.graph)
+
+    def start(self):
+        '''
+        Start gene of the individual
+        '''
+        return self.genes[0]
+
+    def stop(self):
+        '''
+        Stop gene of the individual
+        '''
+        return self.genes[-1]
 
 
 class Population:
@@ -211,13 +223,19 @@ class Solution:
     Solution of shortest path problem using genetic algorithm
     '''
 
-    def __init__(self, graph, **kargs):
+    def __init__(self, start, stop, graph, **kargs):
+        '''
+        @max_stagnation:
+            maximum generations that can be generated without improvement
+        '''
+        self.start = start
+        self.stop = stop
         self.graph = graph
-        self.max_stagnation = kargs['max_stagnation'] if 'max_stagnation' in kargs else 100
         self.max_population_size = kargs['max_population_size'] if 'max_population_size' in kargs else 100
         self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
         self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
         self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
+        self.max_stagnation = kargs['max_stagnation'] if 'max_stagnation' in kargs else 100
 
     def random_population(self, max_population_size=None):
         '''
@@ -240,12 +258,21 @@ class Solution:
         Generate random genes (without repetions) for an individual.
         '''
         genes = []
+
         vertices = self.graph.vertices()
         missing_genes = list(vertices)  # copy
-        for i in range(len(vertices)):
+        missing_genes.remove(self.start)
+        missing_genes.remove(self.stop)
+
+        genes.append(self.start)
+
+        for i in range(len(missing_genes)):
             gene = random.choice(missing_genes)  # choosing a distinct gene
             genes.append(gene)
             missing_genes.remove(gene)  # removing already choosed gene
+
+        genes.append(self.stop)
+
         return genes
 
     def solve(self):
@@ -299,6 +326,11 @@ class Solution:
             else:
                 stagnation_count = 0
 
+            print(
+                stagnation_count,
+                population.best().fitness(),
+                new_population.best().fitness())
+
             population = new_population
 
         return population
@@ -307,9 +339,10 @@ class Solution:
 # distances of edges
 graph = read_graph('data/brazil58.json')
 graph = Graph(graph)
-solution = Solution(graph)
+solution = Solution('0', '57', graph)
 population = solution.solve()
 print(population.best().fitness())
 
 # TODO: linkar individuals e population
 # TODO: crossover deve ser feito no escopo do individuo
+# TODO: ultima populacao esta vindo com todos os individuos iguais
