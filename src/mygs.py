@@ -5,7 +5,7 @@ How to:
 ```
 graph = read_graph('data/brazil58.json')
 graph = Graph(graph)
-solution = Solution('0', '57', graph)
+solution = Solution('0', '57', graph, max_stagnation=20)
 population = solution.solve()
 print(population.best().fitness())
 ```
@@ -23,11 +23,11 @@ import json
 
 
 def read_graph(path):
-    """
+    '''
     Open a json file that contains the edge costs
-    """
-    with open(path) as f:  # open match
-        return json.load(f)  # read match
+    '''
+    with open(path) as f:
+        return json.load(f)
 
 
 def intersection(list1, list2):
@@ -90,36 +90,38 @@ class Individual:
         '''
         Returns two children by crossovering with another individual.
         It is based on indexes of common values between individuals.
-        '''
 
-        # genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
-        genes1 = self.genes[1:-1]  # exclude start, stop vertex
-        # genes2 = [3, 2, 8, 7, 5, 6, 0, 1, 9, 4]
+        genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
+        genes2 = [3, 2, 8, 7, 5, 6, 0, 1, 9, 4]
+        cut_point = 4
+        child1 = [4, 2, 9, 0, 6, 3, 1, 8, 7, 5]
+        child2 = [3, 2, 8, 7, 6, 4, 1, 0, 9, 5]
+        '''
+        genes1 = self.genes[1:-1]  # exclude start, stop points from crossover
         genes2 = other.genes[1:-1]
 
-        # cut_point = 4
+        # cut point to slice genes1 and genes2
         cut_point = random.randint(0, len(genes1) - 1)
 
-        # common values in first slices [2]
+        # common values in first slices
         common_values1 = intersection(genes1[:cut_point], genes2[:cut_point])
 
-        # crossover first slice, [4, 2, 9, 0, 6, 3, 1, 8, 7, 5]
+        # crossover first slices
         for value in common_values1:
             from_index = genes1.index(value)
             to_index = genes2.index(value)
             switch(from_index, to_index, genes1)
 
-        # common values in second slice, [1, 5, 6]
+        # common values in second slices
         common_values2 = intersection(genes1[cut_point:], genes2[cut_point:])
 
-        # 1: [3, 2, 8, 7, 5, 6, 1, 0, 9, 4]
-        # 5: [3, 2, 8, 7, 4, 6, 1, 0, 9, 5]
-        # 6: [3, 2, 8, 7, 6, 4, 1, 0, 9, 5]
+        # crossover second slices
         for value in common_values2:
             from_index = genes2.index(value)
             to_index = genes1.index(value)
             switch(from_index, to_index, genes2)
 
+        # merge start and stop points after crossover
         genes1 = [self.start()] + genes1 + [self.stop()]
         genes2 = [other.start()] + genes2 + [other.stop()]
 
@@ -192,17 +194,17 @@ class Population:
         if isinstance(individual, Individual):
             self.individuals.append(individual)
 
+    def best(self):
+        '''
+        Returns best individual of the population (with minimal fitness).
+        '''
+        return min(self.individuals)
+
     def get(self, index):
         '''
         Returns an individual by its index
         '''
         return self.individuals[index]
-
-    def size(self):
-        '''
-        Returns number of individuals
-        '''
-        return len(self.individuals)
 
     def has(self, i):
         if isinstance(i, list):  # i is a list of genes of an individual
@@ -223,11 +225,11 @@ class Population:
             if cumulative_fitness >= total_fraction:
                 return individual
 
-    def best(self):
+    def size(self):
         '''
-        Returns best individual of the population (with minimal fitness).
+        Returns number of individuals
         '''
-        return min(self.individuals)
+        return len(self.individuals)
 
 
 class Solution:
