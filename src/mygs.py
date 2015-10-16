@@ -200,6 +200,14 @@ class Population:
         '''
         return len(self.individuals)
 
+    def has(self, i):
+        if isinstance(i, list):  # i is a list of genes of an individual
+            for individual in self.individuals:
+                if i == individual.genes:
+                    return True
+        if isinstance(i, Individual):  # i is an individual
+            return i in self.individuals
+
     def roulette_wheel_selection(self):
         '''
         Select an individual based on roulette wheel selection strategy
@@ -222,20 +230,27 @@ class Solution:
     '''
     Solution of shortest path problem using genetic algorithm
     '''
-
-    def __init__(self, start, stop, graph, **kargs):
+    def __init__(self, start, stop, graph, crossover_rate=0.7,
+                 elitism_rate=0.1, max_population_size=100, max_stagnation=100,
+                 mutation_rate=0.05):
         '''
-        @max_stagnation:
-            maximum generations that can be generated without improvement
+        @start: start point for each individual in generation or population
+        @stop: stop point for each individual in population
+        @graph: graph of edge distances
+        @crossover_rate: probability of two individuals crossing in population
+        @elitism_rate: percentage of individual elitism in population
+        @max_population_size: max number of individuals in population
+        @max_stagnation: max stagnation in a population and its descendents
+        @mutation_rate: probability of individual mutation in population
         '''
         self.start = start
         self.stop = stop
         self.graph = graph
-        self.max_population_size = kargs['max_population_size'] if 'max_population_size' in kargs else 100
-        self.crossover_rate = kargs['crossover_rate'] if 'crossover_rate' in kargs else 0.7
-        self.elitism_rate = kargs['elitism_rate'] if 'elitism_rate' in kargs else 0.1
-        self.mutation_rate = kargs['mutation_rate'] if 'mutation_rate' in kargs else 0.05
-        self.max_stagnation = kargs['max_stagnation'] if 'max_stagnation' in kargs else 100
+        self.crossover_rate = crossover_rate
+        self.elitism_rate = elitism_rate
+        self.max_population_size = max_population_size
+        self.max_stagnation = max_stagnation
+        self.mutation_rate = mutation_rate
 
     def random_population(self, max_population_size=None):
         '''
@@ -244,11 +259,9 @@ class Solution:
         max_population_size = max_population_size or self.max_population_size
         population = Population(self.graph)
 
-        ngenes = []  # stores genereted n genes
-
         while population.size() < max_population_size:
             genes = self.random_genes()
-            if(genes not in ngenes):  # preventing twins
+            if(not population.has(genes)):  # preventing twins
                 population.append(genes)
 
         return population
@@ -317,15 +330,19 @@ class Solution:
                 son = son or father.copy()
                 daugther = daugther or mother.copy()
 
+                if new_population.has(son) or new_population.has(daugther):
+                    continue
+
                 new_population.append(son)
                 new_population.append(daugther)
 
-            # if there was no improvement
+            # if there was no improvement with new population
             if population.best().fitness() <= new_population.best().fitness():
                 stagnation_count += 1
             else:
-                stagnation_count = 0
+                stagnation_count = 0  # reset count
 
+            print('stagnation.count', 'old.pop', 'new.pop')
             print(
                 stagnation_count,
                 population.best().fitness(),
@@ -341,8 +358,8 @@ graph = read_graph('data/brazil58.json')
 graph = Graph(graph)
 solution = Solution('0', '57', graph)
 population = solution.solve()
+
 print(population.best().fitness())
 
 # TODO: linkar individuals e population
 # TODO: crossover deve ser feito no escopo do individuo
-# TODO: ultima populacao esta vindo com todos os individuos iguais
