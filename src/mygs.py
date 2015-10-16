@@ -9,6 +9,7 @@ http://stackoverflow.com/questions/1575061/ga-written-in-java
 http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
 http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
 '''
+import copy
 import random
 import json
 
@@ -46,6 +47,9 @@ class Individual:
 
     def __lt__(self, other):
         return self.fitness() < other.fitness()
+
+    def copy(self):
+        return self.__class__(list(self.genes), self.graph)
 
     def __repr__(self):
         return str(self.genes)
@@ -89,11 +93,12 @@ def replace(a, b, l):
 def switch(a, b, l):
     '''
     Switch two elements of a list.
-    @param a Index of an element
-    @param b Index of another element
+    @param a Index of an element of the list
+    @param b Index of another element of the list
     @param l A list
     '''
     l[b], l[a] = l[a], l[b]
+    return l
 
 
 class Population:
@@ -204,6 +209,17 @@ class Population:
         population = population or self.population
         return min(population)
 
+    def mutation(self, individual):
+        '''
+        Generates a mutation based on an individual
+        '''
+        genes = list(individual.genes)
+        chromosome_size = len(genes)
+        a = random.randint(0, chromosome_size - 1)
+        b = random.randint(0, chromosome_size - 1)
+        switch(a, b, genes)
+        return Individual(genes, self.graph)
+
     def solve(self):
 
         population = list(self.population)  # copy
@@ -212,13 +228,36 @@ class Population:
 
         elitism_len = int(self.population_size * self.elitism_rate)
 
+        # elitism
         while len(new_population) < elitism_len:
             best_individual = self.best_individual(population)
             new_population.append(best_individual)
             population.remove(best_individual)  # remove already computed
 
-        return new_population
+        while len(new_population) < len(self.population):
+            # TODO especificar population
+            father = self.roulette_wheel_selection()
+            mother = self.roulette_wheel_selection()
 
+            son = daugther = None
+
+            # crossover
+            if (random.random() < self.crossover_rate):
+                son, daugther = self.crossover(father, mother)
+            else:
+                son, daugther = father.copy(), mother.copy()
+
+            # mutation
+            if (random.random() < self.mutation_rate):
+                son = self.mutation(son)
+
+            if (random.random() < self.mutation_rate):
+                daugther = self.mutation(daugther)
+
+            new_population.append(son)
+            new_population.append(daugther)
+
+        return new_population
 
 # distances of edges
 graph = read_graph('data/brazil58.json')
