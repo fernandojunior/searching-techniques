@@ -343,12 +343,6 @@ class Solution:
             else:
                 stagnation_count = 0  # reset count
 
-            # print('stagnation.count', 'old.pop', 'new.pop')
-            # print(
-            #     stagnation_count,
-            #     population.best().fitness(),
-            #     new_population.best().fitness())
-
             population = new_population
             generations_count += 1
 
