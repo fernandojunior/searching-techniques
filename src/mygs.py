@@ -1,15 +1,6 @@
 '''
 Genetic algorithm implementation to find shortest path.
 
-How to:
-```
-graph = read_graph('data/brazil58.json')
-graph = Graph(graph)
-solution = Solution('0', '57', graph, max_stagnation=20)
-population = solution.solve()
-print(population.best().fitness())
-```
-
 @author Fernando Felix do Nascimento Junior
 
 @links
@@ -304,6 +295,9 @@ class Solution:
         # number of times there is no improvement
         stagnation_count = 0
 
+        # number of generations created
+        generations_count = 0
+
         while stagnation_count < self.max_stagnation:
             new_population = Population(self.graph)
 
@@ -349,12 +343,39 @@ class Solution:
             else:
                 stagnation_count = 0  # reset count
 
-            print('stagnation.count', 'old.pop', 'new.pop')
-            print(
-                stagnation_count,
-                population.best().fitness(),
-                new_population.best().fitness())
+            # print('stagnation.count', 'old.pop', 'new.pop')
+            # print(
+            #     stagnation_count,
+            #     population.best().fitness(),
+            #     new_population.best().fitness())
 
             population = new_population
+            generations_count += 1
+
+        self.generations_count = generations_count
+        self.population = population
 
         return population
+
+
+def test(max_runs=5, max_stagnation=100):
+    from datetime import datetime
+
+    results = []
+
+    for run in range(max_runs):
+        print('Run:', run)
+        graph = read_graph('data/brazil58.json')
+        graph = Graph(graph)
+        solution = Solution('0', '57', graph, max_stagnation=max_stagnation)
+        start_time = datetime.now()
+        population = solution.solve()
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
+        print("Elapsed time:", str(elapsed_time), "ms")
+        print('Generations created:', solution.generations_count)
+        print('Fitness:', population.best().fitness())
+        print('Path:', population.best())
+        results.append([elapsed_time, solution])
+
+    return results
