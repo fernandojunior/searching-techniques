@@ -31,6 +31,9 @@ class Graph:
 
 
 class Town:
+    '''
+    Contains all the important information about a Town.
+    '''
 
     def __init__(self, number, g, h, level, parent=None):
         '''
@@ -101,6 +104,7 @@ class AStar:
                 aux = aux.parent
                 followedRoute.insert(0, aux.number)
 
+            # is target city?
             if currentTown.level == cities_size:
                 solution = True
                 optimumRoute = followedRoute
@@ -111,11 +115,11 @@ class AStar:
                     # have we visited this city in the current followed route?
                     visited = i in followedRoute
                     isSourceCity = i == self.sourceCity
-                    isSolution = len(followedRoute) == cities_size and isSourceCity
+                    isTourComplete = len(followedRoute) == cities_size
+                    isSolution = isTourComplete and isSourceCity
 
                     if not visited or isSolution:
                         cost = self.distances.cost(currentTown.number, i)
-                        print(cost)
                         g = currentTown.g + cost
                         h = self.getHeuristicValue(currentTown.level + 1)
                         level = currentTown.level + 1
