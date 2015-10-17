@@ -114,12 +114,13 @@ class AStar:
                 aux = aux.parent
                 followedRoute.insert(0, aux.number)
 
+            print(followedRoute)
+
             # is target city?
             if currentTown.level == cities_size:
                 solution = True
                 self.optimumRoute = followedRoute
                 self.optimumCost = currentTown.g
-
             else:
                 for i in self.distances.vertices():
                     # have we visited this city in the current followed route?
