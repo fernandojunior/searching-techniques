@@ -34,50 +34,29 @@ class Graph:
 
 class NearestNeighbour:
 
-    def __init__(self, sourceCity, distances):
+    def __init__(self, start, graph):
         '''
         Creates a new instance of NearestNeighbour
         '''
-        self.sourceCity = sourceCity
-        self.distances = distances
+        self.start = start
+        self.graph = graph
         self.followedRoute = []
-        self.nodes = 0
         self.routeCost = 0
 
-    def execute(self):
+    def solve(self):
         '''
         Executes the algorithm
         '''
+        self.followedRoute.append(self.start)
+        currentTown = self.start
 
-        self.followedRoute.append(self.sourceCity)
-        self.nodes += 1
-
-        startTime = datetime.now()
-        self.search(self.sourceCity)
-        endTime = datetime.now()
-
-        print('DEPTH FIRST SEARCH\n\n')
-        print(
-            "\nBetter solution:",
-            self.followedRoute,
-            "// Cost:", self.routeCost, "\n")
-        print("Visited Nodes:", self.nodes, "\n")
-        print("Elapsed Time:", str(endTime - startTime), "ms\n")
-
-    def search(self, from_node):
-        '''
-        @from: node where we start the search.
-        '''
-
-        currentTown = from_node
-
-        while self.nodes != len(self.distances.vertices()):
+        while len(self.followedRoute) != len(self.graph.vertices()):
             # choose the closest town
             lowestDistance = float('Inf')
             chosen = None
-            for nextTown in self.distances.vertices():
+            for nextTown in self.graph.vertices():
                 if nextTown not in self.followedRoute:
-                    tempDistance = self.distances.cost(currentTown, nextTown)
+                    tempDistance = self.graph.cost(currentTown, nextTown)
                     if tempDistance < lowestDistance:
                         lowestDistance = tempDistance
                         chosen = nextTown
@@ -85,14 +64,28 @@ class NearestNeighbour:
             self.routeCost += lowestDistance
             self.followedRoute.append(chosen)
             currentTown = chosen
-            self.nodes += 1
 
         # add the last town
-        self.routeCost += self.distances.cost(currentTown, self.sourceCity)
-        self.followedRoute.append(self.sourceCity)
-        self.nodes += 1
+        self.routeCost += self.graph.cost(currentTown, self.start)
+        self.followedRoute.append(self.start)
 
-graph = read_graph('data/brazil58.json')
-graph = Graph(graph)
-solution = NearestNeighbour('0', graph)
-solution.execute()
+
+def test(max_runs=5):
+
+    results = []
+
+    for run in range(max_runs):
+        print('Run:', run)
+        graph = read_graph('data/brazil58.json')
+        graph = Graph(graph)
+        solution = NearestNeighbour('0', graph)
+        start_time = datetime.now()
+        solution.solve()
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
+        print("Elapsed Time:", str(elapsed_time), "ms")
+        print("Cost:", solution.routeCost)
+        print("Path:", solution.followedRoute)
+        results.append([elapsed_time, solution])
+
+    return results
