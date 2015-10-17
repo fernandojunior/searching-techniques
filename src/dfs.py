@@ -16,6 +16,8 @@ class DepthFirstSearch:
     def __init__(self, distances, sourceCity):
         self.distances = distances
         self.sourceCity = sourceCity
+        self.vertices = list(self.distances.keys())
+        print(self.vertices)
         self.optimumRoute = []
         self.nodes = 0
         self.routeCost = 0
@@ -44,6 +46,7 @@ class DepthFirstSearch:
         '''
         edge cost (between two nodes)
         '''
+        print(from_node, to_node)
         return self.distances[from_node][to_node]
 
     def search(self, from_node, followedRoute):
@@ -70,7 +73,7 @@ class DepthFirstSearch:
             # update the route's cost (back to the previous value)
             self.routeCost = self.routeCost - self.cost(from_node, self.sourceCity)
         else:
-            for to_node in range(len(self.distances)):
+            for to_node in self.vertices:
                 if to_node not in followedRoute:
                     increasedRoute = list(followedRoute)  # copy
                     increasedRoute.append(to_node)
@@ -84,8 +87,8 @@ class DepthFirstSearch:
                     # update the route's cost (back to the previous value)
                     self.routeCost = self.routeCost - self.cost(from_node, to_node)
 
-'''
-sourceCity = 0
+
+sourceCity = '0'
 distances = {
     "0": {
         "0": 0,
@@ -112,4 +115,3 @@ distances = {
         "3": 0
     }}
 DepthFirstSearch(distances, sourceCity).execute()
-'''
