@@ -1,7 +1,5 @@
 '''
 Nearest Neighbour Algorithm
-Adapted from Vicente J. Ferrer Dalmau
-https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/NearestNeighbour.java
 '''
 from datetime import datetime
 import json
