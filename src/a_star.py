@@ -1,16 +1,29 @@
 '''
-Vicente J. Ferrer Dalmau
 
 Implementation of the A* (A Star) algorithm.
 
-http://www.redblobgames.com/pathfinding/a-star/implementation.html
-https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/AStar.java
-http://stackoverflow.com/questions/4159331/python-speed-up-an-a-star-pathfinding-algorithm
-https://en.wikipedia.org/wiki/A%2a_search_algorithm
-http://www.bogotobogo.com/python/python_PriorityQueue_heapq_Data_Structure.php
+Adapted from Vicente J. Ferrer Dalmau
+
+@author Fernando Felix do Nascimento Junior
+
+@links
+    http://www.redblobgames.com/pathfinding/a-star/implementation.html
+    https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/AStar.java
+    http://stackoverflow.com/questions/4159331/python-speed-up-an-a-star-pathfinding-algorithm
+    https://en.wikipedia.org/wiki/A%2a_search_algorithm
+    http://www.bogotobogo.com/python/python_PriorityQueue_heapq_Data_Structure.php
 '''
 from datetime import datetime
 from queue import PriorityQueue
+import json
+
+
+def read_graph(path):
+    '''
+    Open a json file that contains the edge costs
+    '''
+    with open(path) as f:
+        return json.load(f)
 
 
 class Graph:
@@ -77,7 +90,7 @@ class AStar:
         '''
         return self.HEURISTICCONSTANT * (self.cities_size - level)
 
-    def execute(self):
+    def solve(self):
         '''
         executes the algorithm
         '''
@@ -86,9 +99,6 @@ class AStar:
 
         # have we found the solution?
         solution = False
-
-        # start the timer
-        startTime = datetime.now()
 
         # initial town
         self.opened.put(Town(self.sourceCity, 0, self.getHeuristicValue(0), 0))
@@ -107,8 +117,8 @@ class AStar:
             # is target city?
             if currentTown.level == cities_size:
                 solution = True
-                optimumRoute = followedRoute
-                optimumCost = currentTown.g
+                self.optimumRoute = followedRoute
+                self.optimumCost = currentTown.g
 
             else:
                 for i in self.distances.vertices():
@@ -127,40 +137,23 @@ class AStar:
                         childTown.parent = currentTown
                         self.opened.put(childTown)
 
-        endTime = datetime.now()
 
-        elapsed_time = endTime - startTime
+def test(max_runs=5):
 
+    results = []
+
+    for run in range(max_runs):
+        print('Run:', run)
+        graph = read_graph('data/test.json')
+        graph = Graph(graph)
+        solution = AStar('0', graph)
+        start_time = datetime.now()
+        solution.solve()
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
         print("Elapsed Time:", str(elapsed_time), "ms")
-        print("Cost:", optimumCost)
-        print("Path:", optimumRoute)
+        print("Cost:", solution.optimumCost)
+        print("Path:", solution.optimumRoute)
+        results.append([elapsed_time, solution])
 
-graph = {
-    "0": {
-        "0": 0,
-        "1": 2635.0,
-        "2": 2713.0,
-        "3": 2437.0
-    },
-    "1": {
-        "0": 2635.0,
-        "1": 0,
-        "2": 314.0,
-        "3": 2636.0
-    },
-    "2": {
-        "0": 2713.0,
-        "1": 314.0,
-        "2": 0,
-        "3": 2730.0,
-    },
-    "3": {
-        "0": 2437.0,
-        "1": 2636.0,
-        "2": 2730.0,
-        "3": 0
-    }}
-
-graph = Graph(graph)
-
-AStar('0', graph).execute()
+    return results
