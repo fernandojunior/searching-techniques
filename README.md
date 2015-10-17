@@ -9,18 +9,17 @@ The data is provided by [Traveling Salesman Problem Library](http://comopt.ifi.u
 - eil101
 - gil262
 
-## Blind Search Algorithms
+## Blind Search Algorithm
 
-- Breadth-First Search (Busca em extensão)
 - Depth-First Search (Busca em profundidade)
-- Depth-Limited Search (Busca em profundidade limitada)
-- Iterative Deepening Search (Busca de aprofundamento iteraUvo)
 
 *References*
 
 - [Blind Search Algorithms](http://cse.unl.edu/~choueiry/S03-476-876/searchapplet/#bf)
 - [Depth-First Search and Breadth-First Search in Python](http://eddmann.com/posts/depth-first-search-and-breadth-first-search-in-python/)
 
-## Greedy Algorithms
+## Greedy Algorithm
+
+- Nearest Neighbour
 
 ## A* Algorithms
