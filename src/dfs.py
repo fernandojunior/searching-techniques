@@ -1,11 +1,16 @@
+'''
+Depth First Search Algorithm to find shortest path.
+Adapted from Vicente J. Ferrer Dalmau.
+
+@author Fernando Felix do Nascimento Junior
+
+@links
+    https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/DepthFirstSearch.java?r=13
+'''
 from datetime import datetime
 
 
 class DepthFirstSearch:
-    '''
-    Adapted from Vicente J. Ferrer Dalmau
-    https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/DepthFirstSearch.java?r=13
-    '''
 
     # Creates a new instance of DepthFirstSearch
     def __init__(self, distances, sourceCity):

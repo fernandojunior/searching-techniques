@@ -1,5 +1,5 @@
 '''
-Genetic algorithm implementation to find shortest path.
+Genetic Algorithm to find shortest path.
 
 @author Fernando Felix do Nascimento Junior
 
@@ -8,6 +8,7 @@ Genetic algorithm implementation to find shortest path.
     http://stackoverflow.com/questions/1575061/ga-written-in-java
     http://stackoverflow.com/questions/177271/roulette%20-selection-in-genetic-algorithms/177278#177278
     http://stackoverflow.com/questions/12687963/genetic-algorithms-crossover-and-mutation-operators-for-paths
+    https://code.google.com/p/spgenetic/
 '''
 import random
 import json
