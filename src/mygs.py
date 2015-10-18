@@ -114,8 +114,8 @@ class Individual:
             switch(from_index, to_index, genes2)
 
         # merge start and stop points after crossover
-        genes1 = [self.start()] + genes1 + [self.stop()]
-        genes2 = [other.start()] + genes2 + [other.stop()]
+        genes1 = [self.start()] + genes1 + [self.start()]
+        genes2 = [other.start()] + genes2 + [self.start()]
 
         return Individual(genes1, self.graph), Individual(genes2, self.graph)
 
@@ -273,7 +273,7 @@ class Solution:
         vertices = self.graph.vertices()
         missing_genes = list(vertices)  # copy
         missing_genes.remove(self.start)
-        missing_genes.remove(self.stop)
+        # missing_genes.remove(self.stop)
 
         genes.append(self.start)
 
@@ -282,7 +282,7 @@ class Solution:
             genes.append(gene)
             missing_genes.remove(gene)  # removing already choosed gene
 
-        genes.append(self.stop)
+        genes.append(self.start)
 
         return genes
 
@@ -353,7 +353,7 @@ class Solution:
         return population
 
 
-def test(max_runs=5, max_stagnation=100):
+def test(max_runs=5, max_stagnation=50, max_population_size=50):
     from datetime import datetime
 
     results = []
@@ -362,7 +362,7 @@ def test(max_runs=5, max_stagnation=100):
         print('Run:', run)
         graph = read_graph('data/brazil58.json')
         graph = Graph(graph)
-        solution = Solution('0', '57', graph, max_stagnation=max_stagnation)
+        solution = Solution('0', '0', graph, max_stagnation=max_stagnation, max_population_size=max_population_size)
         start_time = datetime.now()
         population = solution.solve()
         end_time = datetime.now()
@@ -374,3 +374,5 @@ def test(max_runs=5, max_stagnation=100):
         results.append([elapsed_time, solution])
 
     return results
+
+test()

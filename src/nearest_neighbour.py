@@ -65,7 +65,7 @@ class NearestNeighbour:
         '''
         missing_towns = list(self.graph.vertices())  # towns to be visited
         missing_towns.remove(self.start)
-        missing_towns.remove(self.stop)
+        # missing_towns.remove(self.stop)
 
         currentTown = self.start
         self.followedRoute.append(currentTown)
@@ -78,8 +78,8 @@ class NearestNeighbour:
             currentTown = closest
 
         # add the last town
-        self.followedRoute.append(self.stop)
-        self.routeCost += self.graph.cost(currentTown, self.stop)
+        self.followedRoute.append(self.start)
+        self.routeCost += self.graph.cost(currentTown, self.start)
 
 
 def test(max_runs=5):
@@ -90,7 +90,7 @@ def test(max_runs=5):
         print('Run:', run)
         graph = read_graph('data/brazil58.json')
         graph = Graph(graph)
-        solution = NearestNeighbour('0', '57', graph)
+        solution = NearestNeighbour('0', '0', graph)
         start_time = datetime.now()
         solution.solve()
         end_time = datetime.now()
@@ -101,3 +101,5 @@ def test(max_runs=5):
         results.append([elapsed_time, solution])
 
     return results
+
+test()
