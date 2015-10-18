@@ -27,15 +27,23 @@ class DepthFirstSearch:
         '''
         self.search(self.start)
 
-    def search(self, current, followedRoute=[]):
+    def search(self, current, followedRoute=[], missing=None):
         '''
-         @param current current vertex where we start the search.
-         @param followedRoute for arriving to current vertex.
+         @param current Current vertex where we start the search.
+         @param followedRoute Followed route for arriving to current vertex.
+         @param missing List of neighbors of current vertex to be visited
         '''
+        missing = missing or list(self.vertices)
+
         if current not in followedRoute:
             followedRoute.append(current)
 
-        # we've found a complete route
+        missing.remove(current)  # current already visited
+
+        for neighbor in missing:  # neighbors to visit
+            self.search(neighbor, list(followedRoute), list(missing))
+
+        # we've found a complete route (possible solution)
         if (len(followedRoute) == len(self.vertices)):
             followedRoute.append(self.start)  # end city
             routeCost = self.graph.path_cost(followedRoute)
@@ -43,10 +51,6 @@ class DepthFirstSearch:
             if (routeCost < self.optimumCost):
                 self.optimumCost = routeCost
                 self.optimumRoute = followedRoute
-        else:
-            for target in self.vertices:
-                if target not in followedRoute:
-                    self.search(target, list(followedRoute))
 
 
 def test(max_runs=5):
