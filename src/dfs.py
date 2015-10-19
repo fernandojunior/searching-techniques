@@ -1,6 +1,5 @@
 '''
 Depth First Search Algorithm to find shortest path.
-Adapted from Vicente J. Ferrer Dalmau.
 
 @author Fernando Felix do Nascimento Junior
 
@@ -13,13 +12,12 @@ from graph import Graph, read_graph
 
 class DepthFirstSearch:
 
-    # Creates a new instance of DepthFirstSearch
     def __init__(self, start, graph):
         self.graph = graph  # graph with vertices and edge costs
         self.start = start  # start city
         self.vertices = self.graph.vertices()  # cities to visit
-        self.optimumRoute = []
-        self.optimumCost = float('Inf')
+        self.optimum_route = []
+        self.optimum_cost = float('Inf')
 
     def solve(self):
         '''
@@ -48,11 +46,11 @@ class DepthFirstSearch:
         if (len(followedRoute) == len(self.vertices)):
             followedRoute.append(self.start)  # end city
             routeCost = self.graph.path_cost(followedRoute)
-            print(followedRoute)
+            print('Possible solution:', followedRoute)
 
-            if (routeCost < self.optimumCost):
-                self.optimumCost = routeCost
-                self.optimumRoute = followedRoute
+            if (routeCost < self.optimum_cost):
+                self.optimum_cost = routeCost
+                self.optimum_route = followedRoute
 
 
 def test(max_runs=5):
@@ -69,10 +67,8 @@ def test(max_runs=5):
         end_time = datetime.now()
         elapsed_time = end_time - start_time
         print("Elapsed Time:", str(elapsed_time), "ms")
-        print("Cost:", solution.optimumCost)
-        print("Path:", solution.optimumRoute)
+        print("Cost:", solution.optimum_cost)
+        print("Path:", solution.optimum_route)
         results.append([elapsed_time, solution])
 
     return results
-
-test()
