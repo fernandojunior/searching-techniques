@@ -7,32 +7,7 @@ Nearest Neighbour Algorithm to find shortest path.
     https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/NearestNeighbour.java
 '''
 from datetime import datetime
-import json
-
-
-def read_graph(path):
-    '''
-    Open a json file that contains the edge costs
-    '''
-    with open(path) as f:
-        return json.load(f)
-
-
-class Graph:
-    '''
-    Graph with edge costs.
-    '''
-    def __init__(self, graph):
-        self.graph = graph
-
-    def cost(self, from_node, to_node):
-        return self.graph[from_node][to_node]
-
-    def vertex(self, position):
-        return self.vertices()[position]
-
-    def vertices(self):
-        return list(self.graph.keys())
+from graph import Graph, read_graph
 
 
 class NearestNeighbour:
@@ -88,7 +63,7 @@ def test(max_runs=5):
 
     for run in range(max_runs):
         print('Run:', run)
-        graph = read_graph('data/brazil58.json')
+        graph = read_graph('data/test.json')
         graph = Graph(graph)
         solution = NearestNeighbour('0', '0', graph)
         start_time = datetime.now()

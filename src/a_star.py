@@ -15,32 +15,7 @@ Adapted from Vicente J. Ferrer Dalmau
 '''
 from datetime import datetime
 from queue import PriorityQueue
-import json
-
-
-def read_graph(path):
-    '''
-    Open a json file that contains the edge costs
-    '''
-    with open(path) as f:
-        return json.load(f)
-
-
-class Graph:
-    '''
-    Graph with edge costs.
-    '''
-    def __init__(self, graph):
-        self.graph = graph
-
-    def cost(self, from_node, to_node):
-        return self.graph[from_node][to_node]
-
-    def vertex(self, position):
-        return self.vertices()[position]
-
-    def vertices(self):
-        return list(self.graph.keys())
+from graph import Graph, read_graph
 
 
 class Town:
@@ -114,7 +89,7 @@ class AStar:
                 aux = aux.parent
                 followedRoute.insert(0, aux.number)
 
-            print(followedRoute)
+            # print(followedRoute)
 
             # is target city?
             if currentTown.level == cities_size:
@@ -158,3 +133,5 @@ def test(max_runs=5):
         results.append([elapsed_time, solution])
 
     return results
+
+test()

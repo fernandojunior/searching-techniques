@@ -353,14 +353,14 @@ class Solution:
         return population
 
 
-def test(max_runs=5, max_stagnation=50, max_population_size=50):
+def test(max_runs=5, max_stagnation=2, max_population_size=4):
     from datetime import datetime
 
     results = []
 
     for run in range(max_runs):
         print('Run:', run)
-        graph = read_graph('data/brazil58.json')
+        graph = read_graph('data/test.json')
         graph = Graph(graph)
         solution = Solution('0', '0', graph, max_stagnation=max_stagnation, max_population_size=max_population_size)
         start_time = datetime.now()
