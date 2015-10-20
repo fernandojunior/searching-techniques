@@ -11,15 +11,7 @@ Genetic Algorithm to find shortest path.
     https://code.google.com/p/spgenetic/
 '''
 import random
-import json
-
-
-def read_graph(path):
-    '''
-    Open a json file that contains the edge costs
-    '''
-    with open(path) as f:
-        return json.load(f)
+from graph import Graph, read_graph
 
 
 def intersection(list1, list2):
@@ -38,23 +30,6 @@ def switch(a, b, l):
     '''
     l[b], l[a] = l[a], l[b]
     return l
-
-
-class Graph:
-    '''
-    Graph with edge costs.
-    '''
-    def __init__(self, graph):
-        self.graph = graph
-
-    def cost(self, from_node, to_node):
-        return self.graph[from_node][to_node]
-
-    def vertex(self, position):
-        return self.vertices()[position]
-
-    def vertices(self):
-        return list(self.graph.keys())
 
 
 class Individual:
