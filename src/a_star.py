@@ -15,7 +15,7 @@ Adapted from Vicente J. Ferrer Dalmau
 '''
 from datetime import datetime
 from queue import PriorityQueue
-from graph import Graph, read_graph
+from graph import Graph
 
 
 class Town:
@@ -120,8 +120,7 @@ def test(max_runs=5):
 
     for run in range(max_runs):
         print('Run:', run)
-        graph = read_graph('data/test.json')
-        graph = Graph(graph)
+        graph = Graph('data/test.json')
         solution = AStar('0', graph)
         start_time = datetime.now()
         solution.solve()

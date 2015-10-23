@@ -1,20 +1,20 @@
 import json
 
 
-def read_graph(path):
-    '''
-    Open a json file that contains the edge costs
-    '''
-    with open(path) as f:
-        return json.load(f)
-
-
 class Graph:
     '''
     Graph of costs.
     '''
     def __init__(self, graph):
-        self.graph = graph
+        if isinstance(graph, dict):
+            self.graph = graph
+        elif isinstance(graph, str):  # it's a json file path
+            with open(graph) as f:
+                self.graph = json.load(f)
+        elif isinstance(graph, file):  # it's a json file
+            self.graph = json.load(graph)
+        else:
+            raise TypeError('Unsupported argument type.')
 
     def cost(self, a, b):
         return self.graph[a][b]
