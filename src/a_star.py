@@ -47,16 +47,16 @@ class AStar:
     # value (h' > h), so the algorithm it's not optimum.
     HEURISTICCONSTANT = 15
 
-    def __init__(self, sourceCity, graph):
+    def __init__(self, start, graph):
         '''
         Creates a new instance of AStar
         '''
-        self.distances = graph
-        self.sourceCity = sourceCity
+        self.start = start
+        self.graph = graph
         self.opened = PriorityQueue()
         self.optimumRoute = []
         self.optimumCost = float('Inf')
-        self.cities_size = len(self.distances.vertices())
+        self.cities_size = len(self.graph.vertices())
 
     def getHeuristicValue(self, level):
         '''
@@ -76,7 +76,7 @@ class AStar:
         solution = False
 
         # initial town
-        self.opened.put(Town(self.sourceCity, 0, self.getHeuristicValue(0), 0))
+        self.opened.put(Town(self.start, 0, self.getHeuristicValue(0), 0))
 
         while (not self.opened.empty()) and (not solution):
             # gets the city with lower g value
@@ -91,24 +91,23 @@ class AStar:
 
             # print(followedRoute)
 
-            # is target city?
+            # is it end city (start == end)?
             if currentTown.level == cities_size:
                 solution = True
                 self.optimumRoute = followedRoute
                 self.optimumCost = currentTown.g
             else:
-                for i in self.distances.vertices():
+                for i in self.graph.vertices():
                     # have we visited this city in the current followed route?
                     visited = i in followedRoute
-                    isSourceCity = i == self.sourceCity
+                    isStart = i == self.start
                     isTourComplete = len(followedRoute) == cities_size
-                    isSolution = isTourComplete and isSourceCity
 
-                    if not visited or isSolution:
-                        cost = self.distances.cost(currentTown.number, i)
-                        g = currentTown.g + cost
-                        h = self.getHeuristicValue(currentTown.level + 1)
+                    if not visited or (isTourComplete and isStart):
+                        cost = self.graph.cost(currentTown.number, i)
                         level = currentTown.level + 1
+                        g = currentTown.g + cost
+                        h = self.getHeuristicValue(level)
                         childTown = Town(i, g, h, level)
                         childTown.parent = currentTown
                         self.opened.put(childTown)

@@ -21,12 +21,9 @@ def intersection(list1, list2):
     return list(set(list1).intersection(set(list2)))
 
 
-def switch(a, b, l):
+def swap(a, b, l):
     '''
-    Switch two elements of a list.
-    @a: Index of an element of the list
-    @b: Index of another element of the list
-    @l: A list
+    Swap an element of index a to an element of index b in a list l.
     '''
     l[b], l[a] = l[a], l[b]
     return l
@@ -34,7 +31,7 @@ def switch(a, b, l):
 
 class Individual:
     '''
-    A individual with a sequence of genes. Represents any possible solution
+    Individual with a sequence of genes. Represents any possible solution/path
     '''
 
     def __init__(self, genes, graph):
@@ -57,14 +54,9 @@ class Individual:
         '''
         Returns two children by crossovering with another individual.
         It is based on indexes of common values between individuals.
-
-        genes1 = [4, 9, 2, 0, 6, 3, 1, 8, 7, 5]
-        genes2 = [3, 2, 8, 7, 5, 6, 0, 1, 9, 4]
-        cut_point = 4
-        child1 = [4, 2, 9, 0, 6, 3, 1, 8, 7, 5]
-        child2 = [3, 2, 8, 7, 6, 4, 1, 0, 9, 5]
         '''
-        genes1 = self.genes[1:-1]  # exclude start, stop points from crossover
+        # prevent start, stop points from crossover
+        genes1 = self.genes[1:-1]
         genes2 = other.genes[1:-1]
 
         # cut point to slice genes1 and genes2
@@ -77,7 +69,7 @@ class Individual:
         for value in common_values1:
             from_index = genes1.index(value)
             to_index = genes2.index(value)
-            switch(from_index, to_index, genes1)
+            swap(from_index, to_index, genes1)
 
         # common values in second slices
         common_values2 = intersection(genes1[cut_point:], genes2[cut_point:])
@@ -86,9 +78,9 @@ class Individual:
         for value in common_values2:
             from_index = genes2.index(value)
             to_index = genes1.index(value)
-            switch(from_index, to_index, genes2)
+            swap(from_index, to_index, genes2)
 
-        # merge start and stop points after crossover
+        # reinsert start and stop points after crossover
         genes1 = [self.start()] + genes1 + [self.start()]
         genes2 = [other.start()] + genes2 + [self.start()]
 
@@ -112,23 +104,18 @@ class Individual:
         '''
         Generates a mutation based on this individual
         '''
-        genes = list(self.genes)
-        a = random.randint(1, len(genes) - 2)  # exclude start and stop vertex
-        b = random.randint(1, len(genes) - 2)
-        switch(a, b, genes)
-        return Individual(genes, self.graph)
+        new_genes = list(self.genes)
+        # prevent start and stop points from mutation
+        a = random.randint(1, len(new_genes) - 2)  # first index
+        b = random.randint(1, len(new_genes) - 2)  # second index
+        swap(a, b, new_genes)
+        return Individual(new_genes, self.graph)
 
     def start(self):
         '''
         Start gene of the individual
         '''
         return self.genes[0]
-
-    def stop(self):
-        '''
-        Stop gene of the individual
-        '''
-        return self.genes[-1]
 
 
 class Population:
@@ -203,36 +190,32 @@ class Solution:
     '''
     Solution of shortest path problem using genetic algorithm
     '''
-    def __init__(self, start, stop, graph, crossover_rate=0.7,
-                 elitism_rate=0.1, max_population_size=100, max_stagnation=100,
+    def __init__(self, start, graph, crossover_rate=0.7,
+                 elitism_rate=0.1, population_size=100, max_stagnation=100,
                  mutation_rate=0.05):
-        '''
-        @start: start point for each individual in generation or population
-        @stop: stop point for each individual in population
-        @graph: graph of edge distances
-        @crossover_rate: probability of two individuals crossing in population
-        @elitism_rate: percentage of individual elitism in population
-        @max_population_size: max number of individuals in population
-        @max_stagnation: max stagnation in a population and its descendents
-        @mutation_rate: probability of individual mutation in population
-        '''
+        # start point for each individual in generation or population
         self.start = start
-        self.stop = stop
+        # graph of edge distances
         self.graph = graph
+        # probability of two individuals crossing in population
         self.crossover_rate = crossover_rate
+        # percentage of individual elitism in population
         self.elitism_rate = elitism_rate
-        self.max_population_size = max_population_size
+        # number of individuals in population
+        self.population_size = population_size
+        # max stagnation in a population and its descendents
         self.max_stagnation = max_stagnation
+        # probability of individual mutation in population
         self.mutation_rate = mutation_rate
 
-    def random_population(self, max_population_size=None):
+    def random_population(self, population_size=None):
         '''
         Generates a random population with a predefined size
         '''
-        max_population_size = max_population_size or self.max_population_size
+        population_size = population_size or self.population_size
         population = Population(self.graph)
 
-        while population.size() < max_population_size:
+        while population.size() < population_size:
             genes = self.random_genes()
             if(not population.has(genes)):  # preventing twins
                 population.append(genes)
@@ -248,7 +231,6 @@ class Solution:
         vertices = self.graph.vertices()
         missing_genes = list(vertices)  # copy
         missing_genes.remove(self.start)
-        # missing_genes.remove(self.stop)
 
         genes.append(self.start)
 
@@ -266,7 +248,7 @@ class Solution:
         Creates lazy generations (genetic algorithm) and returns the last one
         '''
 
-        population = self.random_population(self.max_population_size)
+        population = self.random_population(self.population_size)
 
         # number of times there is no improvement
         stagnation_count = 0
@@ -279,13 +261,13 @@ class Solution:
 
             # elitism
             individuals = list(population.individuals)
-            elitism_size = int(self.max_population_size * self.elitism_rate)
+            elitism_size = int(self.population_size * self.elitism_rate)
             while new_population.size() < elitism_size:
                 best_individual = min(individuals)  # with min fitness
                 new_population.append(best_individual)
                 individuals.remove(best_individual)  # remove already computed
 
-            while new_population.size() < self.max_population_size:
+            while new_population.size() < self.population_size:
                 father = population.roulette_wheel_selection()
                 mother = population.roulette_wheel_selection()
 
@@ -328,7 +310,7 @@ class Solution:
         return population
 
 
-def test(max_runs=5, max_stagnation=2, max_population_size=4):
+def test(max_runs=5, max_stagnation=2, population_size=4):
     from datetime import datetime
 
     results = []
@@ -336,7 +318,7 @@ def test(max_runs=5, max_stagnation=2, max_population_size=4):
     for run in range(max_runs):
         print('Run:', run)
         graph = Graph('data/test.json')
-        solution = Solution('0', '0', graph, max_stagnation=max_stagnation, max_population_size=max_population_size)
+        solution = Solution('0', graph, max_stagnation=max_stagnation, population_size=population_size)
         start_time = datetime.now()
         population = solution.solve()
         end_time = datetime.now()

@@ -12,17 +12,19 @@ from graph import Graph
 
 class NearestNeighbour:
 
-    def __init__(self, start, stop, graph):
+    def __init__(self, start, graph):
         '''
-        Creates a new instance of NearestNeighbour
+        Solution of shortest path problem using nearest neighbour algorithm
         '''
         self.start = start
-        self.stop = stop
         self.graph = graph
         self.followedRoute = []
         self.routeCost = 0
 
     def nearest_neighbour(self, origin, neighbours):
+        '''
+        Returns the nearest neighbour of a vertice origin
+        '''
         lowest_cost = float('Inf')
         nearest = None
 
@@ -38,21 +40,19 @@ class NearestNeighbour:
         '''
         Executes the algorithm
         '''
-        missing_towns = list(self.graph.vertices())  # towns to be visited
-        missing_towns.remove(self.start)
-        # missing_towns.remove(self.stop)
-
+        missing = list(self.graph.vertices())  # towns to be visited
         currentTown = self.start
         self.followedRoute.append(currentTown)
+        missing.remove(currentTown)
 
-        while len(missing_towns) > 0:
-            closest = self.nearest_neighbour(currentTown, missing_towns)
+        while len(missing) > 0:
+            closest = self.nearest_neighbour(currentTown, missing)
             self.followedRoute.append(closest)
             self.routeCost += self.graph.cost(currentTown, closest)
-            missing_towns.remove(closest)  # remove visited town
             currentTown = closest
+            missing.remove(currentTown)  # remove visited town
 
-        # add the last town
+        # add the last one
         self.followedRoute.append(self.start)
         self.routeCost += self.graph.cost(currentTown, self.start)
 
@@ -64,7 +64,7 @@ def test(max_runs=5):
     for run in range(max_runs):
         print('Run:', run)
         graph = Graph('data/test.json')
-        solution = NearestNeighbour('0', '0', graph)
+        solution = NearestNeighbour('0', graph)
         start_time = datetime.now()
         solution.solve()
         end_time = datetime.now()
