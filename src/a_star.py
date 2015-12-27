@@ -1,37 +1,25 @@
-'''
-
+"""
 Implementation of the A* (A Star) algorithm.
+It is based on Vicente J. Ferrer Dalmau code [#]_.
 
-Adapted from Vicente J. Ferrer Dalmau
+..[#] https://code.google.com/p/tspuib/
 
-@author Fernando Felix do Nascimento Junior
-
-@links
-    http://www.redblobgames.com/pathfinding/a-star/implementation.html
-    https://code.google.com/p/tspuib/source/browse/trunk/TravelingSalesMan/src/travelingsalesman/AStar.java
-    http://stackoverflow.com/questions/4159331/python-speed-up-an-a-star-pathfinding-algorithm
-    https://en.wikipedia.org/wiki/A%2a_search_algorithm
-    http://www.bogotobogo.com/python/python_PriorityQueue_heapq_Data_Structure.php
-'''
+:author: Fernando Felix do Nascimento Junior
+"""
 from datetime import datetime
 from queue import PriorityQueue
 from graph import Graph
 
 
 class Town:
-    '''
+    """
     Contains all the important information about a Town.
-    '''
+    """
 
-    def __init__(self, number, g, h, level, parent=None):
-        '''
-        Creates a new instance of Town
-        '''
-        self.number = number
+    def __init__(self, id, g=None, h=None, parent=None):
+        self.id = id
         self.g = g
         self.h = h
-        self.level = level
-        self.f = self.g + self.h
         self.parent = parent
 
     def __eq__(self, other):
@@ -40,77 +28,81 @@ class Town:
     def __lt__(self, other):
         return self.f < other.f
 
+    @property
+    def f(self):
+        return self.g + self.h
+
+    @property
+    def level(self):
+        return 0 if not self.parent else self.parent.level + 1
+
 
 class AStar:
 
-    # Estimation of the cost between two cities, it can overestimate the real
-    # value (h' > h), so the algorithm it's not optimum.
+    #: Estimation of the cost between two cities, it can overestimate the real
+    #: value (h' > h), so the algorithm it's not optimum.
     HEURISTICCONSTANT = 15
 
     def __init__(self, start, graph):
-        '''
-        Creates a new instance of AStar
-        '''
+        #: The start city of route
         self.start = start
+
+        #: A graph with vertices and edge costs
         self.graph = graph
         self.opened = PriorityQueue()
         self.optimumRoute = []
         self.optimumCost = float('Inf')
         self.cities_size = len(self.graph.vertices())
 
-    def getHeuristicValue(self, level):
-        '''
-        Gets the heuristic value for a given depth
+    def get_heuristic_value(self, level):
+        """
+        Gets the heuristic value for a given town level (depth)
         The level 0 has the maximum value.
-        '''
+        """
         return self.HEURISTICCONSTANT * (self.cities_size - level)
 
+    def is_route_complete(self, followedRoute):
+        """
+        Verify if the route is complete.
+        """
+        return len(followedRoute) == self.cities_size
+
     def solve(self):
-        '''
-        executes the algorithm
-        '''
-
-        cities_size = self.cities_size
-
+        """
+        Executes the algorithm
+        """
         # have we found the solution?
         solution = False
 
         # initial town
-        self.opened.put(Town(self.start, 0, self.getHeuristicValue(0), 0))
+        self.opened.put(Town(self.start, 0, self.get_heuristic_value(0)))
 
-        while (not self.opened.empty()) and (not solution):
+        while not solution:
             # gets the city with lower g value
             currentTown = self.opened.get()
 
             # rebuild the followed route for the selected town
             aux = currentTown
-            followedRoute = [aux.number]
+            followedRoute = [aux.id]
             while aux.level is not 0:
                 aux = aux.parent
-                followedRoute.insert(0, aux.number)
+                followedRoute.insert(0, aux.id)
 
-            # print(followedRoute)
+            for i in self.graph.vertices():
+                if (i not in followedRoute or
+                        self.is_route_complete(followedRoute) and
+                        i == self.start):
+                    cost = self.graph.cost(currentTown.id, i)
+                    childTown = Town(i, parent=currentTown)
+                    childTown.g = childTown.parent.g + cost
+                    childTown.h = self.get_heuristic_value(childTown.level)
+                    self.opened.put(childTown)
 
             # is it end city (start == end)?
-            if currentTown.level == cities_size:
+            if currentTown.level == self.cities_size:
                 solution = True
                 self.optimumRoute = followedRoute
                 self.optimumCost = currentTown.g
-            else:
-                for i in self.graph.vertices():
-                    # have we visited this city in the current followed route?
-                    visited = i in followedRoute
-                    isStart = i == self.start
-                    isTourComplete = len(followedRoute) == cities_size
-
-                    if not visited or (isTourComplete and isStart):
-                        cost = self.graph.cost(currentTown.number, i)
-                        level = currentTown.level + 1
-                        g = currentTown.g + cost
-                        h = self.getHeuristicValue(level)
-                        childTown = Town(i, g, h, level)
-                        childTown.parent = currentTown
-                        self.opened.put(childTown)
 
 
 def test(max_runs=5):
