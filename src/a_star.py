@@ -96,20 +96,20 @@ class AStar:
 
             # rebuild the followed route for the selected town
             aux = current
-            followedRoute = [aux.name]
+            followed_route = [aux.name]
             while aux.level is not 0:
                 aux = aux.parent
-                followedRoute.insert(0, aux.name)
+                followed_route.insert(0, aux.name)
 
             # Was the route completed? start == end?
             if current.level == self.cities_size:
-                self.optimum_route = followedRoute
+                self.optimum_route = followed_route
                 self.optimum_cost = current.g
                 break  # we found the solution
 
             for name in self.distances.vertices():
-                if (name not in followedRoute or
-                        self.is_end_city(name, followedRoute)):
+                if (name not in followed_route or
+                        self.is_end_city(name, followed_route)):
                     cost = self.distances.cost(current.name, name)
                     neighbor = Town(name, parent=current)
                     neighbor.g = neighbor.parent.g + cost
