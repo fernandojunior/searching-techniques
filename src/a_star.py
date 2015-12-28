@@ -110,7 +110,7 @@ class AStar:
                 aux = aux.parent
                 followedRoute.insert(0, aux.id)
 
-            # is it end city (start == end)?
+            # Was the route completed? start == end?
             if currentTown.level == self.cities_size:
                 self.optimumRoute = followedRoute
                 self.optimumCost = currentTown.g
