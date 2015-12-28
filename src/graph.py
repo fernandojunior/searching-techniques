@@ -28,6 +28,9 @@ class Graph:
             cost += self.cost(path[i], path[i + 1])
         return cost
 
+    def size(self):
+        return len(self.graph.keys())
+
     def vertex(self, position):
         return self.vertices()[position]
 
