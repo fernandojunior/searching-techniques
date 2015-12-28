@@ -85,14 +85,14 @@ class AStar:
         """Executes the algorithm"""
 
         # The set of tentative nodes to be evaluated
-        self.opened = PriorityQueue()
+        opened = PriorityQueue()
 
         # initially containing the start node.
-        self.opened.put(Town(self.start, 0, self.get_heuristic_value(0)))
+        opened.put(Town(self.start, 0, self.get_heuristic_value(0)))
 
         while True:
             # get the city with lower f value (highest priority)
-            current = self.opened.get()
+            current = opened.get()
 
             # rebuild the followed route for the selected town
             aux = current
@@ -114,7 +114,7 @@ class AStar:
                     neighbor = Town(name, parent=current)
                     neighbor.g = neighbor.parent.g + cost
                     neighbor.h = self.get_heuristic_value(neighbor.level)
-                    self.opened.put(neighbor)
+                    opened.put(neighbor)
 
 
 def test(max_runs=5):
