@@ -68,10 +68,7 @@ class AStar:
         self.cities_size = self.distances.size()
 
     def get_heuristic_value(self, level):
-        """
-        Gets the heuristic value for a given town level.
-        The level 0 has the maximum value.
-        """
+        """Gets the heuristic value for a given level (max=0)."""
         return self.HEURISTICCONSTANT * (self.cities_size - level)
 
     def were_all_cities_visited(self, route):
@@ -81,8 +78,11 @@ class AStar:
     def is_end_city(self, i, route):
         return self.were_all_cities_visited(route) and i == self.start
 
+    def cost(self, from_, to_):
+        return self.distances.cost(from_, to_)
+
     def solve(self):
-        """Executes the algorithm"""
+        """Executes the algorithm."""
 
         # The set of tentative nodes to be evaluated
         opened = PriorityQueue()
@@ -94,7 +94,7 @@ class AStar:
             # get the city with lower f value (highest priority)
             current = opened.get()
 
-            # rebuild the followed route for the selected town
+            # rebuild the followed route for the current town
             aux = current
             followed_route = [aux.name]
             while aux.level is not 0:
@@ -105,14 +105,13 @@ class AStar:
             if current.level == self.cities_size:
                 self.optimum_route = followed_route
                 self.optimum_cost = current.g
-                break  # we found the solution
+                break
 
             for name in self.distances.vertices():
                 if (name not in followed_route or
                         self.is_end_city(name, followed_route)):
-                    cost = self.distances.cost(current.name, name)
                     neighbor = Town(name, parent=current)
-                    neighbor.g = neighbor.parent.g + cost
+                    neighbor.g = current.g + self.cost(current.name, name)
                     neighbor.h = self.get_heuristic_value(neighbor.level)
                     opened.put(neighbor)
 
