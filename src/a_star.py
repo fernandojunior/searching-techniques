@@ -11,20 +11,20 @@ from queue import PriorityQueue
 from graph import Graph
 
 
-class Town:
-    """Contains all the important information (cost) about a Town."""
+class CityCost:
+    """Contains all the important information (cost) about a city."""
 
-    def __init__(self, name, g=None, h=None, parent=None):
-        #: The name of the town.
-        self.name = name
+    def __init__(self, city, g=None, h=None, parent=None):
+        #: The city
+        self.city = city
 
-        #: The cost of getting from the start town to this.
+        #: The cost of getting from the start city to this.
         self.g = g
 
-        #: The heuristic estimate of the cost to get from this town to goal.
+        #: The heuristic estimate of the cost to get from this city to goal.
         self.h = h
 
-        #: Previous town.
+        #: Previous city.
         self.parent = parent
 
     def __eq__(self, other):
@@ -40,7 +40,7 @@ class Town:
 
     @property
     def level(self):
-        """Towns travelled to reach this one"""
+        """Cities travelled to reach this one"""
         return 0 if not self.parent else self.parent.level + 1
 
 
@@ -67,6 +67,10 @@ class AStar:
         #: Total cities to visit
         self.cities_size = self.distances.size()
 
+    def cost(self, from_, to_):
+        """Returns the cost (distance) between two cities"""
+        return self.distances.cost(from_, to_)
+
     def heuristic_cost(self, level):
         """Returns the heuristic cost estimate for a given city level."""
         return self.HEURISTICCONSTANT * (self.cities_size - level)
@@ -75,33 +79,36 @@ class AStar:
         """Verifies if all cities were visited."""
         return len(route) == self.cities_size
 
-    def is_end_city(self, city_name, route):
+    def is_end_city(self, city, route):
         """Verifies if a city is the end of the route."""
-        return self.were_all_cities_visited(route) and city_name == self.start
+        return self.were_all_cities_visited(route) and city == self.start
 
-    def cost(self, from_, to_):
-        """Returns the cost (distance) between two cities"""
-        return self.distances.cost(from_, to_)
+    def city_cost(self, city, parent=None):
+        """Estimates city cost using information of previous city."""
+        cost = CityCost(city, parent=parent)
+        cost.g = parent.g + self.cost(parent.city, city) if parent else 0
+        cost.h = self.heuristic_cost(cost.level)
+        return cost
 
     def solve(self):
         """Executes the algorithm."""
 
-        # The set of tentative nodes to be evaluated
+        # The set of tentative cities cost to be evaluated
         opened = PriorityQueue()
 
-        # Initially containing the start city.
-        opened.put(Town(self.start, 0, self.heuristic_cost(0)))
+        # Initially containing the start city cost.
+        opened.put(self.city_cost(self.start))
 
         while True:
             # Get the city with lower f cost (highest priority)
             current = opened.get()
 
-            # rebuild the followed route for the current town
+            # rebuild the followed route for the current city
             aux = current
-            followed_route = [aux.name]
+            followed_route = [aux.city]
             while aux.level is not 0:
                 aux = aux.parent
-                followed_route.insert(0, aux.name)
+                followed_route.insert(0, aux.city)
 
             # Was the route completed? start == end?
             if current.level == self.cities_size:
@@ -109,13 +116,10 @@ class AStar:
                 self.optimum_cost = current.g
                 break
 
-            for name in self.distances.vertices():
-                if (name not in followed_route or
-                        self.is_end_city(name, followed_route)):
-                    neighbor = Town(name, parent=current)
-                    neighbor.g = current.g + self.cost(current.name, name)
-                    neighbor.h = self.heuristic_cost(neighbor.level)
-                    opened.put(neighbor)
+            for neighbor in self.distances.edges(current.city):
+                if (neighbor not in followed_route or
+                        self.is_end_city(neighbor, followed_route)):
+                    opened.put(self.city_cost(neighbor, current))
 
 
 def test(max_runs=5):
