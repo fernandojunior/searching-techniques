@@ -24,7 +24,7 @@ class CityCost:
         #: The heuristic estimate of the cost to get from this city to goal.
         self.h = h
 
-        #: Previous city.
+        #: Previous city visited.
         self.parent = parent
 
     def __eq__(self, other):
@@ -42,6 +42,15 @@ class CityCost:
     def level(self):
         """Cities travelled to reach this one"""
         return 0 if not self.parent else self.parent.level + 1
+
+    def followed_route(self):
+        """Build the followed route to arrive this city."""
+        aux = self
+        followed_route = [aux.city]
+        while aux.level is not 0:
+            aux = aux.parent
+            followed_route.insert(0, aux.city)
+        return followed_route
 
 
 class AStar:
@@ -67,6 +76,13 @@ class AStar:
         #: Total cities to visit
         self.cities_size = self.distances.size()
 
+    def city_cost(self, city, parent=None):
+        """Estimates city cost using information of previous city."""
+        cost = CityCost(city, parent=parent)
+        cost.g = parent.g + self.cost(parent.city, city) if parent else 0
+        cost.h = self.heuristic_cost(cost.level)
+        return cost
+
     def cost(self, from_, to_):
         """Returns the cost (distance) between two cities"""
         return self.distances.cost(from_, to_)
@@ -75,20 +91,13 @@ class AStar:
         """Returns the heuristic cost estimate for a given city level."""
         return self.HEURISTICCONSTANT * (self.cities_size - level)
 
-    def were_all_cities_visited(self, route):
-        """Verifies if all cities were visited."""
-        return len(route) == self.cities_size
-
     def is_end_city(self, city, route):
         """Verifies if a city is the end of the route."""
         return self.were_all_cities_visited(route) and city == self.start
 
-    def city_cost(self, city, parent=None):
-        """Estimates city cost using information of previous city."""
-        cost = CityCost(city, parent=parent)
-        cost.g = parent.g + self.cost(parent.city, city) if parent else 0
-        cost.h = self.heuristic_cost(cost.level)
-        return cost
+    def were_all_cities_visited(self, route):
+        """Verifies if all cities were visited."""
+        return len(route) == self.cities_size
 
     def solve(self):
         """Executes the algorithm."""
@@ -103,15 +112,11 @@ class AStar:
             # Get the city with lower f cost (highest priority)
             current = opened.get()
 
-            # rebuild the followed route for the current city
-            aux = current
-            followed_route = [aux.city]
-            while aux.level is not 0:
-                aux = aux.parent
-                followed_route.insert(0, aux.city)
+            # Rebuild the followed route for current city
+            followed_route = current.followed_route()
 
-            # Was the route completed? start == end?
-            if current.level == self.cities_size:
+            # Was the route completed? start == end
+            if len(followed_route) == self.cities_size + 1:
                 self.optimum_route = followed_route
                 self.optimum_cost = current.g
                 break
