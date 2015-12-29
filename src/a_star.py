@@ -67,18 +67,20 @@ class AStar:
         #: Total cities to visit
         self.cities_size = self.distances.size()
 
-    def get_heuristic_value(self, level):
-        """Gets the heuristic value for a given level (max=0)."""
+    def heuristic_cost(self, level):
+        """Returns the heuristic cost estimate for a given city level."""
         return self.HEURISTICCONSTANT * (self.cities_size - level)
 
     def were_all_cities_visited(self, route):
-        """Verify if all cities were visited."""
+        """Verifies if all cities were visited."""
         return len(route) == self.cities_size
 
-    def is_end_city(self, i, route):
-        return self.were_all_cities_visited(route) and i == self.start
+    def is_end_city(self, city_name, route):
+        """Verifies if a city is the end of the route."""
+        return self.were_all_cities_visited(route) and city_name == self.start
 
     def cost(self, from_, to_):
+        """Returns the cost (distance) between two cities"""
         return self.distances.cost(from_, to_)
 
     def solve(self):
@@ -87,11 +89,11 @@ class AStar:
         # The set of tentative nodes to be evaluated
         opened = PriorityQueue()
 
-        # initially containing the start node.
-        opened.put(Town(self.start, 0, self.get_heuristic_value(0)))
+        # Initially containing the start city.
+        opened.put(Town(self.start, 0, self.heuristic_cost(0)))
 
         while True:
-            # get the city with lower f value (highest priority)
+            # Get the city with lower f cost (highest priority)
             current = opened.get()
 
             # rebuild the followed route for the current town
@@ -112,7 +114,7 @@ class AStar:
                         self.is_end_city(name, followed_route)):
                     neighbor = Town(name, parent=current)
                     neighbor.g = current.g + self.cost(current.name, name)
-                    neighbor.h = self.get_heuristic_value(neighbor.level)
+                    neighbor.h = self.heuristic_cost(neighbor.level)
                     opened.put(neighbor)
 
 
