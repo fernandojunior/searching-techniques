@@ -11,8 +11,8 @@ from queue import PriorityQueue
 from graph import Graph
 
 
-class CityCost:
-    """Contains all the important information (cost) about a city."""
+class CityFCost:
+    """Contains all the important information about the f cost of a city."""
 
     def __init__(self, city, g=None, h=None, parent=None):
         #: The city
@@ -35,12 +35,12 @@ class CityCost:
 
     @property
     def f(self):
-        """Cost function f"""
+        """Cost function f. Provides an estimate for the total cost."""
         return self.g + self.h
 
     @property
     def level(self):
-        """Cities travelled to reach this one"""
+        """Number of cities travelled to reach this one"""
         return 0 if not self.parent else self.parent.level + 1
 
     def followed_route(self):
@@ -76,9 +76,9 @@ class AStar:
         #: Total cities to visit
         self.cities_size = self.distances.size()
 
-    def city_cost(self, city, parent=None):
-        """Estimates city cost using information of previous city."""
-        cost = CityCost(city, parent=parent)
+    def city_f_cost(self, city, parent=None):
+        """Estimates city f cost using information of previous city."""
+        cost = CityFCost(city, parent=parent)
         cost.g = parent.g + self.cost(parent.city, city) if parent else 0
         cost.h = self.heuristic_cost(cost.level)
         return cost
@@ -106,7 +106,7 @@ class AStar:
         opened = PriorityQueue()
 
         # Initially containing the start city cost.
-        opened.put(self.city_cost(self.start))
+        opened.put(self.city_f_cost(self.start))
 
         while True:
             # Get the city with lower f cost (highest priority)
@@ -121,10 +121,10 @@ class AStar:
                 self.optimum_cost = current.g
                 break
 
-            for neighbor in self.distances.edges(current.city):
+            for neighbor in self.distances.neighbors(current.city):
                 if (neighbor not in followed_route or
                         self.is_end_city(neighbor, followed_route)):
-                    opened.put(self.city_cost(neighbor, current))
+                    opened.put(self.city_f_cost(neighbor, current))
 
 
 def test(max_runs=5):
