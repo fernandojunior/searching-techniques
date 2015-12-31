@@ -1,26 +1,40 @@
+import io
+import copy
 import json
 
 
+def convert(data):
+    """Convert a data to a graph structure"""
+    if isinstance(data, (dict)):
+        return copy.deepcopy(data)
+    elif isinstance(data, str):  # it's a json file path
+        with open(data) as f:
+            return convert(f)
+    elif isinstance(data, io.TextIOBase):  # it's a json file
+        return json.load(data)
+    else:
+        raise TypeError('Unsupported data type.')
+
+
 class Graph:
-    '''
-    Graph of costs.
-    '''
-    def __init__(self, graph):
-        if isinstance(graph, dict):
-            self.graph = graph
-        elif isinstance(graph, str):  # it's a json file path
-            with open(graph) as f:
-                self.graph = json.load(f)
-        elif isinstance(graph, file):  # it's a json file
-            self.graph = json.load(graph)
-        else:
-            raise TypeError('Unsupported argument type.')
+    """
+    Read-only graph of costs.
+    """
+
+    def __init__(self, data):
+        """
+        :data: Data to initialize the graph. The data must be a dict of dicts.
+        """
+        self.__graph = convert(data)
 
     def cost(self, a, b):
         return self.graph[a][b]
 
     def edges(self, vertex):
         return self.graph[vertex]
+
+    def neighbors(self, vertex):
+        return self.edges(vertex).keys()
 
     def path_cost(self, path):
         cost = 0
@@ -36,3 +50,7 @@ class Graph:
 
     def vertices(self):
         return list(self.graph.keys())
+
+    @property
+    def graph(self):
+        return self.__graph
